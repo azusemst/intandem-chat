@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Mini-InTandem Onboarding Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --board-bg: #EFECE6;
+        --board-dot: #D9D4C9;
+        --panel: #FFFFFF;
+        --panel-2: #F6F3EE;
+        --ink: #1D2129;
+        --muted: #6E7480;
+        --line: #DED9CF;
+        --accent: #F04E30;
+        --accent-ink: #C93A20;
+        --teal: #0E7C6B;
+        --sel-bg: #F1EFE9;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --board-bg: #131519;
+          --board-dot: #262A31;
+          --panel: #1D2026;
+          --panel-2: #24272E;
+          --ink: #F2F0EB;
+          --muted: #9BA1AC;
+          --line: #33373F;
+          --accent: #FF6B4F;
+          --accent-ink: #FF8A70;
+          --teal: #3FBFA8;
+          --sel-bg: #262A31;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "Nunito", system-ui, -apple-system, sans-serif;
+        background: var(--board-bg);
+        background-image: radial-gradient(var(--board-dot) 1.1px, transparent 1.1px);
+        background-size: 22px 22px;
+        color: var(--ink);
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      button { font-family: inherit; cursor: pointer; }
+      button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      /* ---------- Toolbar ---------- */
+      .toolbar {
+        display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        padding: 12px 18px;
+      }
+      .counter { font-weight: 800; font-size: 14px; }
+      .counter span { color: var(--muted); font-weight: 700; }
+      .toolbar .spacer { flex: 1; }
+      .tbtn {
+        border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+        border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 800;
+      }
+      .tbtn:hover { background: var(--panel-2); }
+      .tbtn:disabled { opacity: .4; cursor: default; }
+      .tbtn.primary { background: var(--ink); color: var(--board-bg); border-color: var(--ink); }
+
+      /* ---------- Layout ---------- */
+      .stage {
+        flex: 1; display: flex; gap: 28px; justify-content: center; align-items: flex-start;
+        padding: 6px 18px 10px;
+      }
+      .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+      .hint { font-size: 12.5px; color: var(--muted); font-weight: 600; text-align: center; max-width: 380px; }
+
+      /* ---------- Phone ---------- */
+      .phone {
+        width: 384px; height: min(800px, calc(100dvh - 170px)); min-height: 540px;
+        background: #0D0E11; border-radius: 56px; padding: 11px;
+        box-shadow: 0 30px 60px -18px rgba(20, 16, 8, .35), 0 12px 24px -12px rgba(20,16,8,.25);
+        flex: none;
+      }
+      .device {
+        --p-bg: #F6F4F0; --p-card: #FFFFFF; --p-ink: #23262E; --p-muted: #73777F;
+        --p-line: #E6E2D9; --p-accent: #F04E30; --p-accent-deep: #DE3E20;
+        --p-accent-tint: #FDEEE9; --p-teal: #0E7C6B; --p-teal-tint: #E4F2EE;
+        position: relative; height: 100%; background: var(--p-bg); border-radius: 46px;
+        overflow: hidden; display: flex; flex-direction: column; color: var(--p-ink);
+      }
+      .island {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        width: 104px; height: 28px; background: #0D0E11; border-radius: 999px; z-index: 5;
+      }
+      .statusbar {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 26px 2px; font-size: 13.5px; font-weight: 800; flex: none;
+      }
+      .statusbar svg { display: block; }
+      .appbar {
+        display: flex; align-items: center; gap: 10px; padding: 10px 16px 8px; flex: none;
+      }
+      .back-btn {
+        width: 34px; height: 34px; border-radius: 50%; border: none; background: transparent;
+        display: flex; align-items: center; justify-content: center; color: var(--p-ink); flex: none;
+      }
+      .back-btn:hover { background: #ECE8E0; }
+      .back-btn.hidden { visibility: hidden; }
+      .appbar-mid { flex: 1; text-align: center; min-width: 0; }
+      .appbar-title { font-size: 14.5px; font-weight: 800; color: var(--p-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .progress { display: flex; gap: 4px; margin-top: 6px; }
+      .progress i { height: 5px; flex: 1; border-radius: 99px; background: #E0DCD2; display: block; }
+      .progress i.on { background: var(--p-accent); }
+      .appbar-mark { flex: none; width: 34px; display: flex; justify-content: center; }
+
+      .screen { flex: 1; overflow-y: auto; padding: 8px 20px 16px; scrollbar-width: thin; }
+      .screen::-webkit-scrollbar { width: 4px; }
+      .screen::-webkit-scrollbar-thumb { background: #D8D3C8; border-radius: 4px; }
+      .screen-inner { animation: slideIn .26s ease both; }
+      @keyframes slideIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) { .screen-inner { animation: none; } }
+
+      /* Guide bubble */
+      .guide { display: flex; gap: 10px; align-items: flex-start; margin: 6px 0 18px; }
+      .guide .avatar {
+        width: 38px; height: 38px; border-radius: 50%; background: var(--p-accent);
+        flex: none; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px -3px rgba(240, 78, 48, .55);
+      }
+      .bubble {
+        background: var(--p-card); border-radius: 6px 18px 18px 18px; padding: 12px 14px;
+        font-size: 16.5px; font-weight: 800; line-height: 1.35; color: var(--p-ink);
+        box-shadow: 0 2px 8px -4px rgba(30, 25, 15, .18); max-width: 290px;
+      }
+      .bubble small { display: block; margin-top: 5px; font-size: 13px; font-weight: 600; color: var(--p-muted); line-height: 1.45; }
+
+      .mini-label { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: var(--p-muted); margin: 16px 2px 8px; }
+      .mini-label:first-child { margin-top: 0; }
+
+      /* Option rows */
+      .opt-list { display: flex; flex-direction: column; gap: 9px; }
+      .opt {
+        display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+        background: var(--p-card); border: 1.5px solid var(--p-line); border-radius: 15px;
+        padding: 13px 14px; color: var(--p-ink); transition: border-color .12s, background .12s;
+      }
+      .opt:hover { border-color: #CFC9BB; }
+      .opt .t { flex: 1; min-width: 0; }
+      .opt .t b { display: block; font-size: 15px; font-weight: 800; line-height: 1.25; }
+      .opt .t span { display: block; font-size: 12.5px; font-weight: 600; color: var(--p-muted); margin-top: 2px; line-height: 1.35; }
+      .radio {
+        width: 24px; height: 24px; border-radius: 50%; border: 2px solid #CFC9BB; flex: none;
+        display: flex; align-items: center; justify-content: center; background: #fff;
+      }
+      .opt.sel { border-color: var(--p-accent); background: var(--p-accent-tint); }
+      .opt.sel .radio { background: var(--p-accent); border-color: var(--p-accent); }
+      .opt.sel.teal { border-color: var(--p-teal); background: var(--p-teal-tint); }
+      .opt.sel.teal .radio { background: var(--p-teal); border-color: var(--p-teal); }
+      .check {
+        width: 22px; height: 22px; border-radius: 50%; border: 2px solid #CFC9BB; flex: none;
+        display: flex; align-items: center; justify-content: center; background: #fff;
+      }
+      .opt.sel .check { background: var(--p-accent); border-color: var(--p-accent); }
+      .opt.sel.teal .check { background: var(--p-teal); border-color: var(--p-teal); }
+
+      /* Tiles + chips */
+      .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+      .tile {
+        background: var(--p-card); border: 1.5px solid var(--p-line); border-radius: 14px;
+        padding: 13px 12px; font-size: 14px; font-weight: 800; color: var(--p-ink);
+        display: flex; align-items: center; gap: 8px; text-align: left; line-height: 1.25;
+      }
+      .tile .dot { width: 8px; height: 8px; border-radius: 50%; background: #D8D3C8; flex: none; }
+      .tile.sel { border-color: var(--p-accent); background: var(--p-accent-tint); }
+      .tile.sel .dot { background: var(--p-accent); }
+      .tile.sel.teal { border-color: var(--p-teal); background: var(--p-teal-tint); }
+      .tile.sel.teal .dot { background: var(--p-teal); }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip {
+        border: 1.5px solid var(--p-line); background: var(--p-card); color: var(--p-ink);
+        border-radius: 999px; padding: 9px 15px; font-size: 14px; font-weight: 800;
+      }
+      .chip.sel { background: var(--p-ink); border-color: var(--p-ink); color: #fff; }
+      .chip.day { width: 42px; height: 42px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+      .chip.day.sel { background: var(--p-accent); border-color: var(--p-accent); }
+
+      /* Text field */
+      .field {
+        background: var(--p-card); border: 1.5px solid var(--p-line); border-radius: 14px;
+        padding: 10px 14px 12px;
+      }
+      .field:focus-within { border-color: var(--p-accent); }
+      .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--p-muted); margin-bottom: 2px; }
+      .field input {
+        width: 100%; border: none; background: transparent; font-family: inherit;
+        font-size: 19px; font-weight: 800; color: var(--p-ink); padding: 0;
+      }
+      .field input:focus { outline: none; }
+      .field-note { font-size: 12.5px; color: var(--p-muted); font-weight: 600; margin: 10px 2px 0; line-height: 1.45; }
+
+      /* Stepper */
+      .stepper-row {
+        display: flex; align-items: center; justify-content: space-between;
+        background: var(--p-card); border: 1.5px solid var(--p-line); border-radius: 14px; padding: 10px 12px;
+      }
+      .stepper-row .lab b { display: block; font-size: 15px; font-weight: 800; }
+      .stepper-row .lab span { font-size: 12.5px; font-weight: 600; color: var(--p-muted); }
+      .stepper { display: flex; align-items: center; gap: 12px; }
+      .stepper button {
+        width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--p-line);
+        background: var(--p-bg); font-size: 17px; font-weight: 900; color: var(--p-ink);
+        display: flex; align-items: center; justify-content: center; line-height: 1;
+      }
+      .stepper .val { font-size: 18px; font-weight: 900; min-width: 18px; text-align: center; }
+
+      /* Welcome */
+      .welcome-hero { text-align: center; padding: 12px 6px 2px; }
+      .welcome-hero h2 { font-size: 25px; font-weight: 900; line-height: 1.16; margin: 12px 0 8px; letter-spacing: -.01em; }
+      .welcome-hero p { font-size: 14px; font-weight: 600; color: var(--p-muted); line-height: 1.5; margin: 0 auto; max-width: 290px; }
+      .welcome-points { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; text-align: left; }
+      .wp { display: flex; gap: 11px; align-items: flex-start; background: var(--p-card); border: 1px solid var(--p-line); border-radius: 14px; padding: 10px 12px; }
+      .wp .ic { width: 30px; height: 30px; border-radius: 9px; flex: none; display: flex; align-items: center; justify-content: center; }
+      .wp b { display: block; font-size: 14px; font-weight: 800; }
+      .wp span { font-size: 12.5px; font-weight: 600; color: var(--p-muted); line-height: 1.4; display: block; margin-top: 1px; }
+
+      /* Summary card */
+      .sum-card { background: var(--p-card); border-radius: 20px; padding: 20px 18px 8px; box-shadow: 0 10px 26px -14px rgba(30,25,15,.25); }
+      .sum-head { display: flex; align-items: center; gap: 13px; padding-bottom: 14px; border-bottom: 1px solid var(--p-line); }
+      .sum-head .who b { display: block; font-size: 21px; font-weight: 900; line-height: 1.15; }
+      .sum-head .who span { font-size: 13px; font-weight: 700; color: var(--p-muted); }
+      .pavatar {
+        width: 46px; height: 46px; border-radius: 50%; flex: none; color: #fff;
+        display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px;
+      }
+      .sum-row { display: flex; gap: 11px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--p-line); }
+      .sum-row:last-child { border-bottom: none; }
+      .sum-row .ck { width: 21px; height: 21px; border-radius: 50%; background: var(--p-teal-tint); flex: none; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+      .sum-row .tx { flex: 1; min-width: 0; }
+      .sum-row .tx b { display: block; font-size: 12px; font-weight: 800; color: var(--p-muted); text-transform: uppercase; letter-spacing: .04em; }
+      .sum-row .tx span { display: block; font-size: 14.5px; font-weight: 800; line-height: 1.35; margin-top: 1px; }
+      .sum-row .edit { border: none; background: none; color: var(--p-accent); font-size: 13px; font-weight: 800; padding: 2px 0; flex: none; }
+
+      /* Match cards */
+      .match { background: var(--p-card); border-radius: 18px; padding: 15px; margin-bottom: 11px; box-shadow: 0 6px 18px -12px rgba(30,25,15,.28); }
+      .match-top { display: flex; align-items: center; gap: 11px; }
+      .match-top .nm { flex: 1; min-width: 0; }
+      .match-top .nm b { display: block; font-size: 16px; font-weight: 900; line-height: 1.2; }
+      .match-top .nm span { font-size: 12px; font-weight: 700; color: var(--p-muted); }
+      .score { background: var(--p-teal); color: #fff; font-size: 12px; font-weight: 900; border-radius: 999px; padding: 4px 9px; flex: none; }
+      .swap-lines { margin: 12px 0 10px; display: flex; flex-direction: column; gap: 6px; }
+      .swap-line { display: flex; gap: 8px; align-items: baseline; font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+      .tag { font-size: 10px; font-weight: 900; letter-spacing: .05em; padding: 2.5px 7px; border-radius: 6px; flex: none; position: relative; top: -1px; }
+      .tag.get { background: var(--p-accent-tint); color: var(--p-accent-deep); }
+      .tag.give { background: var(--p-teal-tint); color: var(--p-teal); }
+      .match-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .mchip { font-size: 11.5px; font-weight: 800; background: var(--p-bg); border: 1px solid var(--p-line); border-radius: 999px; padding: 4px 9px; color: var(--p-muted); }
+      .req-btn {
+        margin-left: auto; border: 1.5px solid var(--p-accent); color: var(--p-accent-deep);
+        background: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 7px 13px;
+      }
+      .req-btn.done { background: var(--p-teal); border-color: var(--p-teal); color: #fff; }
+
+      .success { text-align: center; padding: 44px 10px 10px; }
+      .success h3 { font-size: 23px; font-weight: 900; margin: 16px 0 8px; }
+      .success p { font-size: 14.5px; font-weight: 600; color: var(--p-muted); line-height: 1.55; margin: 0 auto; max-width: 280px; }
+
+      /* CTA bar */
+      .cta-bar { flex: none; padding: 10px 20px 20px; background: var(--p-bg); }
+      .cta {
+        width: 100%; border: none; border-radius: 15px; padding: 16px; font-size: 16.5px; font-weight: 900;
+        background: var(--p-accent); color: #fff; box-shadow: 0 12px 22px -10px rgba(240,78,48,.65);
+        transition: transform .08s, opacity .15s;
+      }
+      .cta:active { transform: scale(.985); }
+      .cta:disabled { background: #D8D3C8; box-shadow: none; color: #fff; cursor: default; }
+      .cta-note { text-align: center; font-size: 12px; font-weight: 700; color: var(--p-muted); margin-top: 10px; }
+
+      /* ---------- Inspector ---------- */
+      .inspector { width: 336px; flex: none; display: flex; flex-direction: column; gap: 14px; }
+      .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+      .card h3 { margin: 0 0 4px; font-size: 15px; font-weight: 900; }
+      .card .sub { font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.5; margin: 0 0 10px; }
+      .flow-group { font-size: 11.5px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 14px 0 6px; }
+      .flow-group:first-of-type { margin-top: 2px; }
+      .flow-item {
+        display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+        border: 1px solid transparent; background: transparent; border-radius: 10px;
+        padding: 8px 9px; font-size: 13.5px; font-weight: 700; color: var(--ink);
+      }
+      .flow-item:hover { background: var(--panel-2); }
+      .flow-item .n {
+        width: 24px; height: 24px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line);
+        font-size: 11.5px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex: none;
+      }
+      .flow-item.cur { background: var(--sel-bg); border-color: var(--line); }
+      .flow-item.cur .n { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .flow-item .done-dot { margin-left: auto; color: var(--teal); display: none; }
+      .flow-item.seen .done-dot { display: block; }
+      .note-pattern {
+        display: inline-block; font-size: 11px; font-weight: 900; letter-spacing: .03em;
+        background: var(--sel-bg); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; margin-bottom: 9px;
+      }
+      .note-body { font-size: 13.5px; line-height: 1.6; font-weight: 600; color: var(--ink); margin: 0; }
+      .note-body + .note-body { margin-top: 8px; }
+      .specs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+      .spec { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+      .spec b { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 900; margin-bottom: 2px; }
+      .spec span { font-size: 12.5px; font-weight: 800; }
+
+      @media (max-width: 1020px) {
+        .stage { flex-direction: column; align-items: center; }
+        .inspector { width: min(560px, 100%); }
+      }
+      @media (max-width: 560px) {
+        .toolbar { padding: 10px 12px; }
+        .stage { padding: 4px 10px 14px; }
+        .phone { width: 100%; max-width: 384px; height: calc(100dvh - 158px); }
+        .welcome-hero { padding-top: 4px; }
+        .welcome-hero h2 { font-size: 23px; margin: 9px 0 6px; }
+        .welcome-points { margin-top: 12px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <div class="counter" id="counter">Screen 1 of 12 <span>· Welcome</span></div>
+      <div class="spacer"></div>
+      <button class="tbtn" id="prevBtn" type="button">← Prev</button>
+      <button class="tbtn" id="nextBtn" type="button">Next →</button>
+      <button class="tbtn primary" id="restartBtn" type="button">Restart flow</button>
+    </div>
+
+    <div class="stage">
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="device">
+            <div class="island"></div>
+            <div class="statusbar">
+              <span>9:41</span>
+              <svg width="66" height="12" viewBox="0 0 66 12" fill="#23262E" aria-hidden="true">
+                <rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="1" width="3" height="11" rx="1" opacity=".35"/>
+                <path d="M22 4.2a8 8 0 0 1 10 0l-1.6 1.8a5.4 5.4 0 0 0-6.8 0L22 4.2Zm2.2 3.4a4.6 4.6 0 0 1 5.6 0L27 10.4 24.2 7.6Z"/>
+                <rect x="40" y="1.5" width="21" height="9" rx="3" fill="none" stroke="#23262E" opacity=".45"/>
+                <rect x="42" y="3.5" width="13" height="5" rx="1.6"/>
+                <path d="M63 4.5v3a2.2 2.2 0 0 0 0-3Z"/>
+              </svg>
+            </div>
+            <div class="appbar">
+              <button class="back-btn hidden" id="backBtn" type="button" aria-label="Back to previous screen" style="display:none">
+                <svg width="11" height="18" viewBox="0 0 11 18" fill="none" aria-hidden="true"><path d="M9.5 1.5 2 9l7.5 7.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div id="backSpacer" aria-hidden="true" style="width:34px;height:34px;flex:none"></div>
+              <div class="appbar-mid">
+                <div class="appbar-title" id="stepLabel">Welcome</div>
+                <div class="progress" id="progress" aria-hidden="true"></div>
+              </div>
+              <div class="appbar-mark" aria-hidden="true">
+                <svg width="30" height="20" viewBox="0 0 30 20"><circle cx="11" cy="10" r="8" fill="#F04E30" opacity=".88"/><circle cx="19" cy="10" r="8" fill="#0E7C6B" opacity=".88"/></svg>
+              </div>
+            </div>
+            <div class="screen" id="screen"></div>
+            <div class="cta-bar" id="ctaBar"></div>
+          </div>
+        </div>
+        <p class="hint">Click the answers inside the phone to move through the flow — or jump to any screen from the flow map.</p>
+      </div>
+
+      <aside class="inspector">
+        <div class="card">
+          <h3>Flow map</h3>
+          <p class="sub">The full onboarding arc, Lemonade-style: one question per screen, asked by a guide, ending in a summary card and first matches.</p>
+          <div id="flowMap"></div>
+        </div>
+        <div class="card">
+          <h3 id="noteTitle">Screen notes</h3>
+          <p class="sub" id="noteSub"></p>
+          <span class="note-pattern" id="notePattern"></span>
+          <p class="note-body" id="noteBody"></p>
+          <div class="specs" id="noteSpecs"></div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      /* ============ helpers ============ */
+      var CHECK = '<svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5 5.8 10.5 11.5 3.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      var CHECK_TEAL = '<svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2.5 7.5 5.8 10.5 11.5 3.5" stroke="#0E7C6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      var MARK_BIG = '<svg width="58" height="39" viewBox="0 0 30 20" aria-hidden="true"><circle cx="11" cy="10" r="8" fill="#F04E30" opacity=".88"/><circle cx="19" cy="10" r="8" fill="#0E7C6B" opacity=".88"/></svg>';
+      var TANDI = '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.4" cy="10" r="1.9" fill="#fff"/><circle cx="15.6" cy="10" r="1.9" fill="#fff"/><path d="M7.2 14.6c1.4 1.7 3 2.5 4.8 2.5s3.4-.8 4.8-2.5" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M12 3.4V1.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="1.6" r="1.3" fill="#fff"/></svg>';
+
+      function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+      function guide(text, sub) {
+        return '<div class="guide"><div class="avatar">' + TANDI + '</div><div class="bubble">' + text +
+          (sub ? '<small>' + sub + '</small>' : '') + '</div></div>';
+      }
+
+      /* ============ demo state (sample answers, all editable) ============ */
+      var state = {
+        name: 'Alex',
+        school: 'USC — Marshall School of Business',
+        program: 'MSBA',
+        role: 'Consulting',
+        practice: ['Case interviews', 'Behavioral interviews'],
+        level: 'Some reps in',
+        give: ['Behavioral interviews', 'Excel & modeling'],
+        timeline: 'In 2–4 weeks',
+        days: ['Tue', 'Thu', 'Sat'],
+        times: ['Evenings'],
+        perWeek: 2,
+        mode: 'Either works',
+        length: '45 min',
+        requested: {}
+      };
+      var DEFAULTS = JSON.parse(JSON.stringify(state));
+
+      /* ============ screen metadata ============ */
+      var SCREENS = [
+        { id: 'welcome', label: 'Welcome', group: 'Say hello', bar: 'Welcome',
+          pattern: 'Cold open · promise first, proof points under it',
+          note: 'Modeled on Lemonade\u2019s landing: the promise and the \u201cLet\u2019s go\u201d button lead, with three short proof points underneath for anyone who needs a reason before tapping.',
+          note2: 'From the next screen on, Tandi the guide asks every question \u2014 so the rest of the flow reads as a conversation, not a form.',
+          specs: [['Input', 'Tap only'], ['Time on screen', '~5 sec']] },
+        { id: 'name', label: 'Your name', group: 'About you', bar: 'About you',
+          pattern: 'One field per screen',
+          note: 'The easiest possible first question. A small win up front builds momentum before anything more personal is asked.',
+          note2: 'First name only \u2014 it\u2019s what practice partners will see, and it lets Tandi personalize the rest of the flow.',
+          specs: [['Input', 'Text field'], ['Used later', 'Greetings, profile']] },
+        { id: 'school', label: 'School & program', group: 'About you', bar: 'About you',
+          pattern: 'Tap, don\u2019t type',
+          note: 'School sets the matching pool \u2014 same campus first, since in-person swaps are the stickiest. Program rides along as chips so this stays one screen instead of two.',
+          note2: 'Free-text school search exists in the real product; the mockup shows the four common cases.',
+          specs: [['Input', 'List + chips'], ['Drives', 'Matching pool']] },
+        { id: 'role', label: 'Recruiting goal', group: 'About you', bar: 'About you',
+          pattern: 'The key segmentation',
+          note: 'Target role is the single strongest matching signal, so it\u2019s asked before skills. Single-select keeps the MVP match logic simple: one primary goal per person.',
+          note2: 'Secondary goals can be added from the profile later \u2014 onboarding only needs the one that matters most.',
+          specs: [['Input', 'Single-select'], ['Drives', 'Match ranking']] },
+        { id: 'practice', label: 'Practice goals', group: 'Your swap', bar: 'Your swap',
+          pattern: 'Multi-select · \u201cGET\u201d side of the swap',
+          note: 'Everything they want reps in, tagged as the GET side of the exchange so the swap framing is visible from the start.',
+          note2: 'Fixed skill categories (per the PRD) keep matching deterministic \u2014 no free-text skills to reconcile.',
+          specs: [['Input', 'Multi-select tiles'], ['Min. selection', '1 skill']] },
+        { id: 'level', label: 'Experience level', group: 'Your swap', bar: 'Your swap',
+          pattern: 'Self-rating with plain-language anchors',
+          note: 'No 1\u201310 scales \u2014 each level is described in words a student would actually say. The answer sets starting difficulty in the AI session plan.',
+          note2: 'It also protects beginners: they\u2019re paired first with partners who opted into teaching.',
+          specs: [['Input', 'Single-select'], ['Drives', 'Session difficulty']] },
+        { id: 'give', label: 'What you\u2019ll teach', group: 'Your swap', bar: 'Your swap',
+          pattern: 'The tandem turn · \u201cGIVE\u201d side',
+          note: 'This is the screen that makes InTandem different from a marketplace: you give a session for every one you get. Reciprocity is stated out loud, not buried in terms.',
+          note2: 'Even one teachable topic is enough \u2014 the empty-state copy lowers the bar so nobody bounces here.',
+          specs: [['Input', 'Multi-select tiles'], ['Min. selection', '1 skill']] },
+        { id: 'timeline', label: 'Interview timeline', group: 'Your plan', bar: 'Your plan',
+          pattern: 'Urgency signal',
+          note: 'A real date turns practice into a plan: session cadence, reminders, and match priority all pace to it. \u201cThis week\u201d triggers a fast-track match.',
+          note2: '\u201cNo date yet\u201d still gets matched \u2014 just at a gentler cadence.',
+          specs: [['Input', 'Single-select'], ['Drives', 'Cadence, reminders']] },
+        { id: 'availability', label: 'Availability', group: 'Your plan', bar: 'Your plan',
+          pattern: 'Concrete commitment',
+          note: 'Days, time blocks, and a weekly target \u2014 the three things booking needs. Partners only ever see these windows, which is what makes scheduling one tap later.',
+          note2: 'Defaults lean on the pilot pattern from the PRD: weekday evenings plus one weekend slot.',
+          specs: [['Input', 'Chips + stepper'], ['Drives', 'Booking windows']] },
+        { id: 'mode', label: 'Format & length', group: 'Your plan', bar: 'Your plan',
+          pattern: 'Last logistics',
+          note: 'Mode and session length close out the profile. 45 minutes is the default swap \u2014 one case each way, feedback included.',
+          note2: '\u201cEither works\u201d is pre-selected because it roughly doubles the available match pool.',
+          specs: [['Input', 'Single-select + chips'], ['Drives', 'Session setup']] },
+        { id: 'summary', label: 'Profile summary', group: 'Meet your matches', bar: 'Your profile',
+          pattern: 'The \u201cquote\u201d moment',
+          note: 'Borrowed from the Lemonade quote screen in your screenshot: everything the user told us, gathered on one card before anything is finalized.',
+          note2: 'Every row has an Edit shortcut back to its question \u2014 confirming a summary is what builds trust before matching begins.',
+          specs: [['Input', 'Review + edit'], ['Pattern source', 'Lemonade quote card']] },
+        { id: 'matches', label: 'First matches', group: 'Meet your matches', bar: 'Your matches',
+          pattern: 'Payoff screen',
+          note: 'AI-suggested matches come first (per the PRD), ranked by reciprocal fit: their GIVE covers your GET, availability overlaps, level is compatible.',
+          note2: 'Requesting a swap is the activation event \u2014 the whole flow is built to make this tap feel earned.',
+          specs: [['Input', 'Request swap'], ['Activation', 'First request sent']] }
+      ];
+
+      /* ============ option data ============ */
+      var SCHOOLS = [
+        { t: 'USC — Marshall School of Business', s: 'University of Southern California' },
+        { t: 'UCLA — Anderson School of Management', s: 'University of California, Los Angeles' },
+        { t: 'Another university', s: 'We\u2019ll match you across schools too' },
+        { t: 'Not in school right now', s: 'Recent grad or self-prepping' }
+      ];
+      var PROGRAMS = ['MSBA', 'MBA', 'Undergrad', 'Other grad program'];
+      var ROLES = [
+        { t: 'Consulting', s: 'Case interviews, firm recruiting' },
+        { t: 'Product management', s: 'Product sense, metrics, execution' },
+        { t: 'Data & analytics', s: 'SQL, Python, case-style analytics' },
+        { t: 'Finance & banking', s: 'Technical questions, modeling' },
+        { t: 'Marketing', s: 'Brand cases, campaign thinking' },
+        { t: 'Tech / engineering', s: 'Technical + behavioral rounds' }
+      ];
+      var PRACTICE = ['Case interviews', 'Behavioral interviews', 'Product sense & metrics', 'Excel & modeling', 'SQL & Python', 'Presentations & storytelling'];
+      var GIVE = ['Case interviews', 'Behavioral interviews', 'Excel & modeling', 'SQL & Python', 'Resume & LinkedIn reviews', 'Networking & coffee chats'];
+      var LEVELS = [
+        { t: 'Just starting', s: 'I\u2019ve watched a few \u2014 haven\u2019t done a live one yet' },
+        { t: 'Some reps in', s: 'I\u2019ve done a handful of mocks with friends' },
+        { t: 'Nearly interview-ready', s: 'I want polish, pressure, and hard feedback' }
+      ];
+      var TIMELINES = [
+        { t: 'This week', s: 'Fast-track me \u2014 I need reps now' },
+        { t: 'In 2–4 weeks', s: 'Enough time for a real practice plan' },
+        { t: 'In 1–2 months', s: 'Steady build, no rush' },
+        { t: 'No date yet', s: 'Just exploring and building the habit' }
+      ];
+      var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      var TIMES = ['Mornings', 'Afternoons', 'Evenings'];
+      var MODES = [
+        { t: 'Video call', s: 'Link is auto-generated for every session' },
+        { t: 'In person', s: 'On campus, public spots only' },
+        { t: 'Either works', s: 'More matches, faster swaps' }
+      ];
+      var LENGTHS = ['30 min', '45 min', '60 min'];
+      var MATCHES = [
+        { id: 'maya', name: 'Maya Chen', meta: 'USC Marshall · MBA \u201927', initials: 'MC', color: '#B5533C', score: 96,
+          get: 'Case interviews', give: 'Excel & modeling', chips: ['Tue · Thu evenings', 'In person OK'] },
+        { id: 'jordan', name: 'Jordan Ellis', meta: 'UCLA Anderson · MBA \u201927', initials: 'JE', color: '#0E7C6B', score: 93,
+          get: 'Behavioral interviews', give: 'Case interviews', chips: ['Sat mornings', 'Video'] },
+        { id: 'priya', name: 'Priya Nair', meta: 'USC Marshall · MSBA', initials: 'PN', color: '#7A5C2E', score: 91,
+          get: 'Case interviews', give: 'SQL & Python', chips: ['Thu · Sat evenings', 'Either format'] }
+      ];
+
+      var current = 0;
+      var seen = { 0: true };
+      var successShown = false;
+
+      /* ============ screen body renderers ============ */
+      function optList(items, selected, action, kind) {
+        return '<div class="opt-list">' + items.map(function (it) {
+          var sel = it.t === selected;
+          return '<button type="button" class="opt' + (sel ? ' sel' : '') + '" data-action="' + action + '" data-value="' + esc(it.t) + '">' +
+            '<span class="t"><b>' + esc(it.t) + '</b>' + (it.s ? '<span>' + esc(it.s) + '</span>' : '') + '</span>' +
+            '<span class="' + (kind === 'check' ? 'check' : 'radio') + '">' + (sel ? CHECK : '') + '</span></button>';
+        }).join('') + '</div>';
+      }
+      function tileGrid(items, selectedArr, action, teal) {
+        return '<div class="grid2">' + items.map(function (t) {
+          var sel = selectedArr.indexOf(t) > -1;
+          return '<button type="button" class="tile' + (sel ? ' sel' : '') + (teal ? ' teal' : '') + '" data-action="' + action + '" data-value="' + esc(t) + '">' +
+            '<span class="dot"></span>' + esc(t) + '</button>';
+        }).join('') + '</div>';
+      }
+      function chipRow(items, selectedArr, action, single) {
+        return '<div class="chips">' + items.map(function (t) {
+          var sel = single ? t === selectedArr : selectedArr.indexOf(t) > -1;
+          return '<button type="button" class="chip' + (sel ? ' sel' : '') + '" data-action="' + action + '" data-value="' + esc(t) + '">' + esc(t) + '</button>';
+        }).join('') + '</div>';
+      }
+
+      function renderBody(id) {
+        var first = esc(state.name.split(' ')[0] || 'there');
+        switch (id) {
+          case 'welcome':
+            return '<div class="welcome-hero">' + MARK_BIG +
+              '<h2>Practice together.<br/>Get hired together.</h2>' +
+              '<p>InTandem pairs you with a peer to swap mock interviews and honest feedback \u2014 free, because you give as much as you get.</p></div>' +
+              '<div class="welcome-points">' +
+              '<div class="wp"><span class="ic" style="background:#FDEEE9"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 12.5 11 15.5 16.5 9" stroke="#F04E30" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>A real partner, not a chatbot</b><span>Live mocks with a student on the same recruiting clock.</span></div></div>' +
+              '<div class="wp"><span class="ic" style="background:#E4F2EE"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9a8 8 0 0 1 13.5-3M20 15a8 8 0 0 1-13.5 3" stroke="#0E7C6B" stroke-width="2.4" stroke-linecap="round"/><path d="M17.5 2.8V6h-3.2M6.5 21.2V18h3.2" stroke="#0E7C6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Swap, don\u2019t pay</b><span>Teach a session, earn a session. That\u2019s the whole deal.</span></div></div>' +
+              '<div class="wp"><span class="ic" style="background:#FBF0DC"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3.5 14 8l4.9.6-3.6 3.4 1 4.8L12 14.6l-4.3 2.2 1-4.8L5.1 8.6 10 8l2-4.5Z" stroke="#B07E2B" stroke-width="1.9" stroke-linejoin="round"/></svg></span><div><b>Feedback after every session</b><span>Your partner scores you \u2014 and our AI observer adds notes.</span></div></div>' +
+              '</div>';
+
+          case 'name':
+            return guide('Hi! I\u2019m Tandi. First things first \u2014 what should we call you?', 'I\u2019ll ask a few quick questions to find your first practice partner.') +
+              '<div class="field"><label for="nameInput">First name</label><input id="nameInput" type="text" value="' + esc(state.name) + '" autocomplete="off" /></div>' +
+              '<p class="field-note">This is how your practice partners will see you. Last name stays private until you swap contact info.</p>';
+
+          case 'school':
+            return guide('Nice to meet you, ' + first + '. Where do you study?', 'Same-campus partners come first \u2014 in-person swaps are the ones people actually keep.') +
+              optList(SCHOOLS, state.school, 'school') +
+              '<div class="mini-label">Program</div>' + chipRow(PROGRAMS, state.program, 'program', true);
+
+          case 'role':
+            return guide('And what are you recruiting for?', 'This decides who we suggest first \u2014 cases pair with cases.') +
+              optList(ROLES, state.role, 'role');
+
+          case 'practice':
+            return guide('What do you want to practice?', 'Pick everything you\u2019d like reps in. You can add more later \u2014 this is the GET side of your swap.') +
+              '<div class="mini-label">You get practice in</div>' + tileGrid(PRACTICE, state.practice, 'practice', false);
+
+          case 'level':
+            return guide('How case-ready are you today, honestly?', 'No judgment \u2014 this just sets your starting difficulty and pairs you with the right partners.') +
+              optList(LEVELS, state.level, 'level');
+
+          case 'give':
+            return guide('Now the tandem part \u2014 what could you teach?', 'Everyone has something. Even one strong topic is enough to swap, and teaching is the fastest way to lock in your own skills.') +
+              '<div class="mini-label">You give sessions in</div>' + tileGrid(GIVE, state.give, 'give', true);
+
+          case 'timeline':
+            return guide('When\u2019s your first interview?', 'We\u2019ll pace your practice plan to the date \u2014 closer date, faster matches.') +
+              optList(TIMELINES, state.timeline, 'timeline');
+
+          case 'availability': {
+            var dayChips = '<div class="chips">' + DAYS.map(function (d) {
+              return '<button type="button" class="chip day' + (state.days.indexOf(d) > -1 ? ' sel' : '') + '" data-action="day" data-value="' + d + '">' + d.slice(0, 2) + '</button>';
+            }).join('') + '</div>';
+            return guide('When could you actually show up?', 'Partners only see these windows \u2014 pick times you\u2019d genuinely keep.') +
+              '<div class="mini-label">Days</div>' + dayChips +
+              '<div class="mini-label">Time of day</div>' + chipRow(TIMES, state.times, 'time', false) +
+              '<div class="mini-label">Weekly target</div>' +
+              '<div class="stepper-row"><div class="lab"><b>Sessions per week</b><span>One swap = one session each way</span></div>' +
+              '<div class="stepper"><button type="button" data-action="perweek-down" aria-label="Fewer sessions">\u2212</button><span class="val">' + state.perWeek + '</span><button type="button" data-action="perweek-up" aria-label="More sessions">+</button></div></div>';
+          }
+
+          case 'mode':
+            return guide('Last one \u2014 how do you like to practice?', 'Most swaps run 45 minutes: one case each way, feedback included.') +
+              optList(MODES, state.mode, 'mode') +
+              '<div class="mini-label">Session length</div>' + chipRow(LENGTHS, state.length, 'length', true);
+
+          case 'summary': {
+            var rows = [
+              ['Recruiting for', state.role, 3],
+              ['Practicing', state.practice.join(' · '), 4],
+              ['Experience level', state.level, 5],
+              ['Teaching', state.give.join(' · '), 6],
+              ['First interview', state.timeline, 7],
+              ['Availability', state.days.join(' · ') + ' — ' + state.times.join(', ') + ' · ' + state.perWeek + ' sessions/wk', 8],
+              ['Format', state.mode + ' · ' + state.length, 9]
+            ];
+            return guide('Here\u2019s your Tandem profile, ' + first + ' \u2014 look right?', 'Anything off? Tap Edit on a row and I\u2019ll take you back to that question.') +
+              '<div class="sum-card"><div class="sum-head"><div class="pavatar" style="background:#F04E30">' + esc(initials()) + '</div>' +
+              '<div class="who"><b>' + esc(state.name) + '</b><span>' + esc(shortSchool()) + ' · ' + esc(state.program) + '</span></div></div>' +
+              rows.map(function (r) {
+                return '<div class="sum-row"><span class="ck">' + CHECK_TEAL + '</span><div class="tx"><b>' + r[0] + '</b><span>' + esc(r[1]) + '</span></div>' +
+                  '<button type="button" class="edit" data-action="edit" data-value="' + r[2] + '">Edit</button></div>';
+              }).join('') + '</div>';
+          }
+
+          case 'matches': {
+            if (successShown) {
+              return '<div class="success">' +
+                '<svg width="72" height="72" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="34" fill="#E4F2EE"/><path d="M23 37.5 32 46 50 27" stroke="#0E7C6B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>' +
+                '<h3>You\u2019re in, ' + first + '.</h3>' +
+                '<p>Your first swap request is on its way. Partners usually reply within a day \u2014 we\u2019ll nudge you the moment your first session is booked.</p></div>';
+            }
+            return guide('Three partners match your swap, ' + first + '.', 'Ranked by fit: their teaching covers your practice goals, and your calendars overlap.') +
+              MATCHES.map(function (m) {
+                var req = !!state.requested[m.id];
+                return '<div class="match"><div class="match-top"><div class="pavatar" style="background:' + m.color + '">' + m.initials + '</div>' +
+                  '<div class="nm"><b>' + m.name + '</b><span>' + m.meta + '</span></div><span class="score">' + m.score + '% match</span></div>' +
+                  '<div class="swap-lines"><div class="swap-line"><span class="tag get">YOU GET</span>' + m.get + '</div>' +
+                  '<div class="swap-line"><span class="tag give">YOU GIVE</span>' + m.give + '</div></div>' +
+                  '<div class="match-foot">' + m.chips.map(function (c) { return '<span class="mchip">' + c + '</span>'; }).join('') +
+                  '<button type="button" class="req-btn' + (req ? ' done' : '') + '" data-action="request" data-value="' + m.id + '">' + (req ? 'Requested' : 'Request swap') + '</button></div></div>';
+              }).join('');
+          }
+        }
+        return '';
+      }
+
+      function initials() {
+        var parts = state.name.trim().split(/\s+/);
+        return ((parts[0] || 'A')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+      }
+      function shortSchool() { return state.school.split(' — ')[0]; }
+
+      function ctaFor(id) {
+        switch (id) {
+          case 'welcome': return { label: "Let\u2019s go", note: 'Free for students · No card, ever · About a minute' };
+          case 'summary': return { label: 'Find my first matches', note: 'You give a session for every one you get \u2014 that\u2019s the deal' };
+          case 'matches': return successShown ? { label: 'Back to my matches', note: '' } : { label: 'Take me to my dashboard', note: 'Browse comes after your first swap is booked' };
+          default: return { label: 'Continue', note: '' };
+        }
+      }
+      function canContinue(id) {
+        switch (id) {
+          case 'name': return state.name.trim().length > 0;
+          case 'practice': return state.practice.length > 0;
+          case 'give': return state.give.length > 0;
+          case 'availability': return state.days.length > 0 && state.times.length > 0;
+          default: return true;
+        }
+      }
+
+      /* ============ rendering ============ */
+      var screenEl = document.getElementById('screen');
+      var ctaBar = document.getElementById('ctaBar');
+      var progressEl = document.getElementById('progress');
+      var stepLabel = document.getElementById('stepLabel');
+      var backBtn = document.getElementById('backBtn');
+      var counterEl = document.getElementById('counter');
+      var flowMapEl = document.getElementById('flowMap');
+
+      progressEl.innerHTML = SCREENS.map(function () { return '<i></i>'; }).join('');
+
+      var flowHTML = '', lastGroup = '';
+      SCREENS.forEach(function (s, i) {
+        if (s.group !== lastGroup) { flowHTML += '<div class="flow-group">' + s.group + '</div>'; lastGroup = s.group; }
+        flowHTML += '<button type="button" class="flow-item" data-goto="' + i + '"><span class="n">' + (i + 1) + '</span>' + s.label +
+          '<span class="done-dot"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5 5.8 10.5 11.5 3.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>';
+      });
+      flowMapEl.innerHTML = flowHTML;
+
+      function render() {
+        var s = SCREENS[current];
+        seen[current] = true;
+        screenEl.innerHTML = '<div class="screen-inner">' + renderBody(s.id) + '</div>';
+        screenEl.scrollTop = 0;
+        var cta = ctaFor(s.id);
+        ctaBar.innerHTML = '<button type="button" class="cta" id="ctaBtn">' + cta.label + '</button>' +
+          (cta.note ? '<div class="cta-note">' + cta.note + '</div>' : '');
+        document.getElementById('ctaBtn').addEventListener('click', onCTA);
+        refreshCTA();
+        stepLabel.textContent = s.bar;
+        Array.prototype.forEach.call(progressEl.children, function (seg, i) { seg.className = i <= current ? 'on' : ''; });
+        backBtn.classList.toggle('hidden', current === 0);
+        backBtn.style.display = current === 0 ? 'none' : 'flex';
+        document.getElementById('backSpacer').style.display = current === 0 ? 'block' : 'none';
+        counterEl.innerHTML = 'Screen ' + (current + 1) + ' of ' + SCREENS.length + ' <span>\u00B7 ' + s.label + '</span>';
+        document.getElementById('prevBtn').disabled = current === 0;
+        Array.prototype.forEach.call(flowMapEl.querySelectorAll('.flow-item'), function (el, i) {
+          el.classList.toggle('cur', i === current);
+          el.classList.toggle('seen', !!seen[i] && i !== current);
+          if (i === current) el.setAttribute('aria-current', 'true'); else el.removeAttribute('aria-current');
+        });
+        document.getElementById('noteTitle').textContent = (current + 1) + '. ' + s.label;
+        document.getElementById('noteSub').textContent = 'Group: ' + s.group + ' \u00B7 Screen ' + (current + 1) + ' of ' + SCREENS.length;
+        document.getElementById('notePattern').textContent = s.pattern;
+        document.getElementById('noteBody').textContent = s.note;
+        document.getElementById('noteSpecs').innerHTML = s.specs.map(function (sp) {
+          return '<div class="spec"><b>' + sp[0] + '</b><span>' + sp[1] + '</span></div>';
+        }).join('') + '<div class="spec" style="grid-column:1/-1"><b>Design note</b><span style="font-weight:600;font-size:12.5px;line-height:1.5;display:block">' + s.note2 + '</span></div>';
+        var nameInput = document.getElementById('nameInput');
+        if (nameInput) {
+          nameInput.addEventListener('input', function () {
+            state.name = nameInput.value;
+            refreshCTA();
+          });
+        }
+      }
+      function refreshCTA() {
+        var btn = document.getElementById('ctaBtn');
+        if (btn) btn.disabled = !canContinue(SCREENS[current].id);
+      }
+      function goTo(i) {
+        current = Math.max(0, Math.min(SCREENS.length - 1, i));
+        render();
+      }
+      function onCTA() {
+        var id = SCREENS[current].id;
+        if (id === 'matches') {
+          if (successShown) { successShown = false; render(); return; }
+          successShown = true; render(); return;
+        }
+        if (current < SCREENS.length - 1) goTo(current + 1);
+      }
+
+      function toggleIn(arr, v) {
+        var i = arr.indexOf(v);
+        if (i > -1) arr.splice(i, 1); else arr.push(v);
+      }
+
+      screenEl.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-action]');
+        if (!el) return;
+        var a = el.getAttribute('data-action'), v = el.getAttribute('data-value');
+        switch (a) {
+          case 'school': state.school = v; break;
+          case 'program': state.program = v; break;
+          case 'role': state.role = v; break;
+          case 'level': state.level = v; break;
+          case 'timeline': state.timeline = v; break;
+          case 'mode': state.mode = v; break;
+          case 'length': state.length = v; break;
+          case 'practice': toggleIn(state.practice, v); break;
+          case 'give': toggleIn(state.give, v); break;
+          case 'day': toggleIn(state.days, v); break;
+          case 'time': toggleIn(state.times, v); break;
+          case 'perweek-up': state.perWeek = Math.min(7, state.perWeek + 1); break;
+          case 'perweek-down': state.perWeek = Math.max(1, state.perWeek - 1); break;
+          case 'edit': goTo(parseInt(v, 10)); return;
+          case 'request': state.requested[v] = !state.requested[v]; break;
+          default: return;
+        }
+        render();
+      });
+
+      backBtn.addEventListener('click', function () { if (current > 0) goTo(current - 1); });
+      document.getElementById('prevBtn').addEventListener('click', function () { if (current > 0) goTo(current - 1); });
+      document.getElementById('nextBtn').addEventListener('click', function () {
+        if (SCREENS[current].id === 'matches') { if (!successShown) { successShown = true; render(); } return; }
+        if (current < SCREENS.length - 1) goTo(current + 1);
+      });
+      document.getElementById('restartBtn').addEventListener('click', function () {
+        state = JSON.parse(JSON.stringify(DEFAULTS));
+        seen = { 0: true };
+        successShown = false;
+        goTo(0);
+      });
+      flowMapEl.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-goto]');
+        if (el) goTo(parseInt(el.getAttribute('data-goto'), 10));
+      });
+      document.addEventListener('keydown', function (e) {
+        var tag = (document.activeElement && document.activeElement.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        if (e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+        if (e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+      });
+
+      render();
+    </script>
+  </body>
+</html>
