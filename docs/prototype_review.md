@@ -2,6 +2,8 @@
 
 Reviewed October 22, 2026.
 
+**Updated MVP scope:** Partner recommendations now use deterministic rules based on interests, goals, industries, skills, and availability. These are ranking signals, not mandatory overlaps. AI-assisted recommendations are a later-stage enhancement; the MVP requires no AI provider.
+
 ## Assessment
 
 The prototype partially fits the MVP as an onboarding design, but it does not yet satisfy the matching-first MVP requirements. Its strongest reusable elements are the guided questions, editable profile summary, manual availability selection, and partner cards. Its main gaps are USC verification, recommendations that actually depend on the profile, mutual acceptance, and contact handoff.
@@ -25,11 +27,11 @@ For this week's iPhone demo, use a mobile web app launched from the Home Screen.
 | **MVP-01 USC verification** | **Missing and conflicting** | School selection is self-reported. `SCHOOLS` includes UCLA, another university, and people not in school; `MATCHES` includes a UCLA student (lines 484–488 and 520–526). There is no verification gate. USC schools beyond Marshall have no explicit representation. **User review**: This is for USC student only and we still need to verify. A simple verification like `@usc.edu` would do if an SSO or other verification is complicated or expensive. |
 | **MVP-02 Manual profile creation and updates** | **Partial** | Role, practice topics, teaching topics, one experience level, and interview timeline are editable. The summary links back to question screens. Industry, general interests, course topics, and recruiting stage are not explicitly captured; an interview timeline is only a proxy for recruiting stage. Recruiting is assumed, and the experience question is case-interview-specific. There is no saved account profile. |
 | **MVP-04 Manual availability** | **Partial** | Days and morning/afternoon/evening blocks can be selected (lines 599–608). There is no explicit timezone or definition of these time blocks. No match calculation uses them. |
-| **MVP-05 AI-assisted recommendations** | **Presentation only** | Three constant candidates with scores of 96%, 93%, and 91% are rendered through `MATCHES.map`. Profile changes never filter, rank, or replace them. No AI or matching service is called. The generic fit explanation and calendar-overlap claim are not calculated from the answers. |
+| **MVP-05 Rules-based recommendations** | **Presentation only** | Three constant candidates with scores of 96%, 93%, and 91% are rendered through `MATCHES.map`. Profile changes never filter, rank, or replace them. No input-dependent matching logic is implemented. An AI service is not required for the revised MVP. The generic fit explanation and calendar-overlap claim are not calculated from the answers. |
 | **MVP-06 Accept, decline, and change partners** | **Partial interaction only** | “Request swap” toggles a local boolean. There is no recipient view, pending/accepted/declined lifecycle, decline action, or replacement flow. Toggling “Requested” off is not mutual acceptance. |
 | **MVP-07 No suitable partner outcome** | **Missing** | The matches screen always displays three candidates. There is no empty state, preference revision prompt, or retry outcome. |
 | **MVP-17 Contact handoff** | **Missing** | No contact method is collected or revealed after acceptance. The final message promises a future reply and booking rather than giving the pair a usable next step. |
-| **MVP-18 Profile visibility and AI-use explanation** | **Partial copy only** | The prototype says last names stay private and partners see availability windows, but it does not collect a separate last name, define shared fields, explain AI processing, or implement access controls. |
+| **MVP-18 Profile visibility and matching-use explanation** | **Partial copy only** | The prototype says last names stay private and partners see availability windows, but it does not collect a separate last name, define shared fields, explain how profile data affects recommendations, or implement access controls. |
 | **MVP-19 Leave matching and remove profile** | **Missing** | “Restart flow” resets the demonstration to sample answers; it is not a user-facing opt-out or profile-removal mechanism. |
 
 The current artifact can support feedback on onboarding wording and interaction. It cannot establish whether students receive suitable matches or reach mutually accepted partnerships.
@@ -40,11 +42,11 @@ The current artifact can support feedback on onboarding wording and interaction.
 
 **Priority: Essential for validating matching.**
 
-`MATCHES` is a fixed array (lines 520–526), and the matches screen renders it unchanged (lines 642–651). Selecting different roles, skills, availability, school, or experience does not alter candidates or scores. No persistent student pool, eligibility filter, availability comparison, or AI-assisted ranking appears in the file.
+`MATCHES` is a fixed array (lines 520–526), and the matches screen renders it unchanged (lines 642–651). Selecting different roles, skills, availability, school, or experience does not alter candidates or scores. No persistent student pool, eligibility filter, availability comparison, or input-dependent ranking appears in the file.
 
 Even the default cards are inconsistent with the entered profile: Alex's teaching topics are behavioral interviews and Excel/modeling, but Jordan's card says **YOU GIVE Case interviews** and Priya's says **YOU GIVE SQL & Python**. These are not Alex's selected teaching topics.
 
-**Recommended change:** Drive recommendations from the entered profile and a controlled pool of eligible candidates. Show concrete reasons such as shared goals, compatible skill levels, or an actual availability overlap. Treat percentage scores as illustrative until a scoring definition exists. A rules-only implementation could test relevance, but it would be a disclosed deviation from the AI-assisted matching requirement.
+**Recommended change:** Drive recommendations from the entered profile and a controlled pool of eligible candidates. Show concrete reasons such as shared goals, compatible skill levels, or an actual availability overlap. Treat percentage scores as illustrative until a scoring definition exists. A rules-based implementation is the agreed MVP approach. Rank candidates by profile signals and show factual reasons; do not require shared topics or availability overlap. AI assistance is deferred.
 
 ### 2 The eligible audience differs from the agreed audience
 
@@ -130,7 +132,7 @@ For a small on-device demonstration, Apple permits personal-device testing throu
 1. **Finish the matching journey.** Verification, relevant profile inputs, input-dependent recommendations, a no-match outcome, request states, and contact handoff matter more than packaging.
 2. **Use a phone layout.** Remove the presentation board from the student view, replace simulated phone chrome with actual viewport layout, and handle safe areas and keyboard interaction.
 3. **Host the app and prepare its identity.** Use a reachable HTTPS address, a clear app title, and a Home Screen icon. A manifest can provide app metadata; no manifest, service worker, or real app icon is present in the supplied HTML. A service worker is not a prerequisite for this chosen Home Screen demonstration, but offline behavior must not be claimed without implementing and testing it.
-4. **Plan reliable demo data.** Use clearly identified fictional candidates for a scripted walkthrough. If claiming real matching validation, use eligible participating students, shared persistent state, and a real acceptance from the second account. Do not embed an AI service secret in browser-delivered code.
+4. **Plan reliable demo data.** Use clearly identified fictional candidates for a scripted walkthrough. If claiming real matching validation, use eligible participating students, shared persistent state, and a real acceptance from the second account. No AI provider or credentials are required for this MVP.
 5. **Rehearse on the actual phone.** Add the hosted app to the Home Screen, open it from its icon, complete fresh onboarding, edit a profile, request and accept a match, and reach the contact handoff. Check reload behavior, loss of connectivity, text size, keyboard visibility, scrolling, and tap selection. The Google Fonts request is an external dependency, although a system-font fallback exists.
 
 Installing a Home Screen icon does not make a static prototype into a functioning MVP. Conversely, the matching MVP can be demonstrated on an iPhone without adding built-in calls this week.
@@ -144,8 +146,8 @@ Use the following sequence as the minimum matching demonstration:
 3. Recommendations reflect those answers and explain partner fit. Changing a material input changes the eligible results or ranking in an explainable way.
 4. The student requests a partner and sees a pending state. The partner accepts from a second account, or a clearly labeled demo control simulates that action.
 5. Both participants reach a confirmed partnership and the agreed contact handoff.
-6. An incompatible profile demonstrates the no-match state and preference revision.
+6. An empty eligible candidate pool demonstrates the no-match state; a candidate with non-overlapping availability remains visible with an honest scheduling note.
 
-**Demo acceptance:** This is sufficient to explain the intended MVP journey if simulated steps are disclosed. It is not evidence of matching success with real students until verification, matching, shared requests, and acceptance actually operate and users assess partner fit. A manually curated or rules-only demonstration must not be presented as implemented AI matching.
+**Demo acceptance:** This is sufficient to explain the intended MVP journey if simulated steps are disclosed. It is not evidence of matching success with real students until verification, matching, shared requests, and acceptance actually operate and users assess partner fit. A real rules-based implementation meets the revised matching approach. Static, manually curated cards still do not demonstrate input-dependent ranking. AI matching is deferred.
 
 The team still needs to settle whether this week's evaluation expects a scripted prototype or a functioning multi-user pilot, the exact deadline and spending ceiling, the verification method, similar-level versus complementary matching, whether reciprocal teaching is compulsory, and which contact method is shared. The iPhone presentation format is settled for this review: a Home Screen web app is acceptable. Built-in calls remain in the next release.

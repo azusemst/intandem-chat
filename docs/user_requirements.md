@@ -8,7 +8,7 @@ Source: [PRD.docx](PRD.docx), including its English and Chinese content. The PRD
 
 The user's clarifications on October 22, 2026 override the PRD where they differ:
 
-- **MVP goal:** Validate matching first. AI interview feedback is deferred.
+- **MVP goal:** Validate general, rules-based partner recommendations first. AI-assisted recommendations and AI interview feedback are deferred. The MVP needs no AI provider, model, API key, or AI service budget.
 - **Deadline:** The MVP is due this week; the exact submission date and time are not specified.
 - **Audience:** All verified USC students, with no MSBA-only restriction.
 - **Budget:** Limited; an amount has not been set.
@@ -29,13 +29,13 @@ The PRD reports that 72.4% of survey respondents identified interview preparatio
 
 | Stage | Intended scope | Reason |
 | --- | --- | --- |
-| **MVP this week** | Verified USC access, manually entered profiles and availability, AI-assisted partner recommendations, accepting or changing partners, and a basic way to coordinate after mutual acceptance. | Tests whether students find the suggested partners suitable within a limited budget. |
+| **MVP this week** | Verified USC access, manually entered profiles and availability, rules-based partner recommendations using interests, goals, industries, skills, and availability, accepting or changing partners, and a basic way to coordinate after mutual acceptance. | Tests whether students find the suggested partners suitable within a limited budget. |
 | **Later stage 2 next release** | Built-in video or audio calls, basic session scheduling, and AI feedback on real peer interviews. | Adds the chosen practice experience after validating matching. Calls are confirmed for this release; the exact timing of AI feedback within this stage remains proposed. |
-| **Later stage 2 enhancements** | Resume extraction, external profile and calendar connections, AI scheduling, richer study workflows, peer ratings, partner chat, and ongoing coaching. | Adds convenience and repeat use after matching works. These features need not all ship with the first calling release. |
+| **Later stage 2 enhancements** | AI-assisted partner recommendations, resume extraction, external profile and calendar connections, AI scheduling, richer study workflows, peer ratings, partner chat, and ongoing coaching. | Adds convenience and repeat use after matching works. These features need not all ship with the first calling release. |
 | **Later stage 3** | Streaks, leaderboards, physical rewards, and monetization experiments. | Requires evidence of sustained use and additional operating decisions. |
 | **Later candidate requiring a separate decision** | Discussion posts or a community feed. | The PRD itself questions whether this would distract from the product purpose. |
 
-**Recommended MVP boundary:** Use manual profile and availability entry to avoid document parsing and calendar integrations this week. Keep career, technical, and course goals representable, while testing a small set of practice categories. Provide a simple, mutually agreed contact handoff after acceptance. Full session scheduling, built-in calls, recording, transcription, AI interview assessment, peer ratings, chat, and payments are outside this week's MVP. AI-assisted matching remains in scope; AI interview feedback is a separate capability.
+**Recommended MVP boundary:** Use manual profile and availability entry to avoid document parsing and calendar integrations this week. Keep career, technical, and course goals representable, while testing a small set of practice categories. Provide a simple, mutually agreed contact handoff after acceptance. Full session scheduling, built-in calls, recording, transcription, AI interview assessment, peer ratings, chat, and payments are outside this week's MVP. MVP ranking uses deterministic rules and factual compatibility reasons. Interests, goals, industries, skills, and availability are ranking signals, not mandatory overlap requirements. Only eligibility and participation-state rules exclude candidates. AI-assisted matching is a later enhancement.
 
 **Cost constraint:** Keep the MVP inexpensive. The budget ceiling, expected pilot size, and available team capacity remain to be confirmed before selecting services and estimating operating costs.
 
@@ -55,7 +55,7 @@ Requirement IDs retained from the first draft are unchanged. MVP-03 and MVP-08 t
 
 | ID | Requirement | Basis and source | Acceptance criteria |
 | --- | --- | --- | --- |
-| MVP-05 | As a student, I receive AI-assisted recommendations for suitable human practice partners. | **PRD:** Solution summary, core product flow step 2, first core priority. **User:** Validate matching first. | Recommendations use practice goals, skills, interests, and availability, plus industry and recruiting stage where relevant. Only verified USC students are recommended, and users are not matched to themselves. Recommendations show an understandable reason (**Proposed**). Similar versus complementary skill matching remains a decision. Cross-major matching is allowed; major is not an eligibility restriction. |
+| MVP-05 | As a student, I receive general, rules-based recommendations for suitable human practice partners. | **PRD:** Solution summary, core product flow step 2, first core priority. **User:** General recommendations now; AI assistance later. | Deterministic recommendations rank eligible candidates by interests, goals, industries, skills, level, recruiting stage where relevant, and availability. These are ranking signals; shared topics and overlapping availability are not mandatory. Only verified USC students are recommended, and users are not matched to themselves. Recommendations show factual compatibility reasons derived from shared fields. If there is no availability overlap, say so; do not imply a confirmed compatible schedule. Missing optional fields do not count as shared attributes. Stable tie-breaking makes equal-scoring results reproducible. No AI provider or AI-generated text is required. Similar versus complementary skill matching remains a decision. Cross-major matching is allowed; major is not an eligibility restriction. |
 | MVP-06 | As a student, I can accept or decline a recommended partner and request another partner. | **PRD:** Core product flow step 3. | A student can accept, decline, or request a replacement without editing their profile. The interface distinguishes a recommendation from an agreed partnership. Both students must accept before a partnership is confirmed (**Proposed**). |
 | MVP-07 | As a student, I receive a clear outcome when no suitable partner is currently available. | **Derived:** Matching within a limited student community. | The interface explains that no current match is available and allows the student to revise preferences or retry. It does not present an unsuitable or nonexistent partner as a successful match. |
 | MVP-17 | As a mutually matched student, I can coordinate a next step with my partner. | **Derived:** Making an accepted match usable. **Proposed:** Contact handoff rather than full chat this week. | After mutual acceptance, each student can see the contact method the other agreed to share. Before acceptance, that contact information is hidden. The MVP need not schedule or host a practice session. |
@@ -66,7 +66,7 @@ These requirements are recommendations for the matching MVP. Recording and sessi
 
 | ID | Requirement | Basis | Acceptance criteria |
 | --- | --- | --- | --- |
-| MVP-18 | As a student, I know which profile information is visible and how it is used for matching. | **Proposed** | The product explains which fields are shared with potential partners and which are used by AI matching. Verification information is not exposed as public profile data. Contact details follow MVP-17. |
+| MVP-18 | As a student, I know which profile information is visible and how it is used for matching. | **Proposed** | The product explains which fields are shared with potential partners and which are used by rules-based matching. Verification information is not exposed as public profile data. Contact details follow MVP-17. |
 | MVP-19 | As a student, I can leave the matching pool and request removal of my profile. | **Proposed** | A student has a documented way to stop receiving recommendations and request profile removal. Before the pilot, the product defines retention and deletion behavior; no retention period is assumed here. |
 
 ## Later-stage user requirements
@@ -88,6 +88,7 @@ Built-in calls are confirmed for the next release. Other later-stage sequencing 
 
 | ID | Stage | User requirement | Source and scope notes |
 | --- | --- | --- | --- |
+| L-22 | **Later stage 2 enhancement** | As a student, I can receive AI-assisted partner ranking and fit explanations. | **PRD:** AI partner matching, deferred by the user. Select an AI provider, model, budget, and evaluation approach only when this stage is implemented. MVP rules-based recommendations remain independently usable. |
 | L-01 | **Later stage 2** | As a student, I can use LinkedIn profile information to populate my matching profile. | **PRD:** AI matching and core product flow step 1. Decide whether this means a user-uploaded export, pasted information, or an authorized account connection. A live LinkedIn integration is not assumed. |
 | L-02 | **Later stage 2** | As a student, I can import or connect calendar information instead of manually entering availability. | **PRD:** Core product flow step 1. Select calendar providers and distinguish an uploaded calendar from ongoing synchronization. Share availability rather than private event details (**Proposed**). |
 | L-03 | **Later stage 2** | As a matched pair, we receive AI suggestions for mutually suitable times and a practice schedule. | **PRD:** AI scheduling core function. Builds on later-stage basic scheduling and availability inputs; define conflict and schedule-change rules. |
@@ -125,7 +126,7 @@ The MVP evaluates matching, not call quality, interview assessment, or improved 
 ### Decisions affecting the MVP
 
 1. **Delivery details:** What exact date and time is the MVP due, how many people are building it, and is the deliverable a functioning app or a prototype? The confirmed constraint is this week.
-2. **Budget ceiling:** What amount can be spent on hosting, verification, and AI matching, and how many pilot users are expected? The confirmed direction is limited cost; no amount is assumed.
+2. **Budget ceiling:** What amount can be spent on hosting and verification, and how many pilot users are expected? The confirmed direction is limited cost; no amount is assumed.
 3. **Verification:** Is verifying a USC email sufficient for this pilot, or must current enrollment be established another way? The audience is already settled as all USC students.
 4. **Matching intent:** Should students be paired at similar skill levels, complementary levels, or by a selectable preference? Which career, technical, and course categories are essential for the first pilot? Are partnerships persistent or per practice need?
 5. **Coordination and visibility:** Which contact method can students share after mutual acceptance, and which profile fields may potential partners see? Is the proposed contact handoff sufficient for this week's pilot?
@@ -142,4 +143,4 @@ The MVP evaluates matching, not call quality, interview assessment, or improved 
 13. Who funds and fulfills physical rewards, and are rankings based on individuals or pairs, sessions or days?
 14. What problem do paid streak restoration and subscriptions solve, and what evidence would justify building them?
 
-**Scope assessment:** A matching-first release is the agreed focus for this week. Built-in calls, full-session capture, and AI interview feedback add a separate practice workflow and are deferred. Budget and capacity are still too uncertain to promise delivery feasibility. Test partner fit before adding integrations, gamification, or payments, and evaluate interview improvement separately from matching success.
+**Scope assessment:** A rules-based matching release with no AI provider is the agreed focus for this week. AI-assisted recommendations, built-in calls, full-session capture, and AI interview feedback are deferred. Budget and capacity are still too uncertain to promise delivery feasibility. Test partner fit before adding integrations, gamification, or payments, and evaluate interview improvement separately from matching success.

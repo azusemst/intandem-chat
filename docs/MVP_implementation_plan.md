@@ -31,7 +31,7 @@ Work through the phases below. Complete independent local work while external se
 - All eligible USC students, across schools and programs.
 - Manual profile creation and editing, including career and study goals.
 - Manual availability with an explicit timezone.
-- Actual AI-assisted partner recommendations with grounded fit explanations.
+- Deterministic recommendations based on interests, goals, industries, skills, and availability, with factual compatibility reasons. No AI provider is required.
 - Pending, accepted, declined, and canceled request states; decline and replacement options.
 - Contact visibility controlled by mutual acceptance.
 - Useful no-match, loading, validation, and service-error states.
@@ -39,7 +39,7 @@ Work through the phases below. Complete independent local work while external se
 
 ### Excluded scope
 
-Calls, recording, transcription, AI interview assessment, resume parsing, LinkedIn/calendar connections, full session booking, chat, public ratings, streaks, rewards, subscriptions, and payments. Do not implement these to complete this demo.
+AI-assisted partner recommendations, calls, recording, transcription, AI interview assessment, resume parsing, LinkedIn/calendar connections, full session booking, chat, public ratings, streaks, rewards, subscriptions, and payments. Do not implement these to complete this demo.
 
 ## Defaults and decisions
 
@@ -50,14 +50,14 @@ These are provisional implementation defaults to make the plan executable, not p
 | Eligibility | Require an authenticated, email-confirmed identity whose exact normalized email domain is `usc.edu`. Keep the allowlist server-controlled. Do not accept suffix lookalikes or a client-editable verification flag. Describe this as email verification, not proof of current enrollment. |
 | Login | Supabase email OTP, with custom SMTP for hosted student use. Students enter their codes themselves. Implement sign-out and session expiry handling. |
 | Practice purpose | Career interviews, technical practice, or course study. Career-only fields are conditional. |
-| Matching intent | Shared practice topics and similar self-assessed levels, with availability overlap. Teaching strengths are optional; no compulsory one-for-one teaching exchange. |
+| Matching intent | Use interests, goals, industries, skills, similar levels, and availability as ranking signals. Shared topics and availability overlap are not mandatory. Teaching strengths are optional; no compulsory one-for-one teaching exchange. |
 | Partnership | Multiple recommendations and requests are allowed. One accepted request represents mutual interest; it does not create a booked practice session. |
 | Shared profile | Display name, school/program, goals, topic levels, interests, relevant recruiting fields, and availability. Explain this before submitting the profile. |
 | Contact handoff | Collect a contact email chosen by the student. Share it only with the other participant in an accepted partnership. Keep login email private unless the student explicitly selects it as their contact. |
 | Language | English interface for the MVP; accept Unicode names and profile text. |
 | Opt-out | Pause matching immediately; retain access to existing requests and accepted partnerships. |
 | Removal | Record a deletion request, pause matching, and show an honest pending status. Team processing is required; do not imply that all data was erased. Agree retention and processing policy before the pilot. |
-| Unselected infrastructure | AI provider/model, sender domain, service plans, spending ceiling, and exact deadline remain team dependencies. No paid tier is selected by this plan. |
+| Unselected infrastructure | Sender domain, service plans, spending ceiling, and exact deadline remain team dependencies. No paid tier is selected by this plan. |
 
 ## Architecture
 
@@ -65,12 +65,12 @@ These are provisional implementation defaults to make the plan executable, not p
 - **Identity and persistence:** Supabase Auth and Postgres; Supabase client, versioned SQL migrations, and generated database types. An additional ORM is not required.
 - **Hosting:** Vercel with a plan appropriate for team access and usage.
 - **Email:** An SMTP provider such as Resend, connected to Supabase Auth, using a verified sender domain.
-- **AI:** One server-only adapter to the selected provider; structured input/output and bounded requests. No vector database is needed for the initial structured profiles.
+- **Recommendations:** Deterministic server-side scoring over structured profile data, with stable tie-breaking and factual reason templates. Do not add AI SDKs, credentials, provider adapters, embeddings, vector databases, or outbound AI calls to the MVP.
 - **UI:** Mobile-first forms, readable cards, clear navigation and explicit states. Rebuild the interface as React components. Keep presenter/debug controls out of the student flow.
 
 ### Suggested code boundaries
 
-Use `src/app/` for pages and endpoints, `src/components/` for UI, `src/lib/validation/` for shared schemas, and `src/lib/server/` for auth, profiles, matching, requests, and AI access. Store SQL in `supabase/migrations/` and checks in `tests/`. Adapt these paths if an application already exists; avoid parallel scaffolds.
+Use `src/app/` for pages and endpoints, `src/components/` for UI, `src/lib/validation/` for shared schemas, and `src/lib/server/` for auth, profiles, matching, and requests. Store SQL in `supabase/migrations/` and checks in `tests/`. Adapt these paths if an application already exists; avoid parallel scaffolds.
 
 Use `/login`, `/onboarding`, `/profile`, `/matches`, `/requests`, and `/settings` as the initial routes. The requests page shows incoming and outgoing requests plus accepted partners and their authorized contact information.
 
@@ -80,7 +80,6 @@ Provide an `.env.example` with placeholders and instructions for:
 
 - App origin and Supabase URL/publishable key.
 - Server-controlled USC email-domain allowlist.
-- Server-only AI provider, model, and API key.
 - Any narrowly required server-only administrative credential; routine user operations should use the user's authenticated context.
 
 Keep actual credentials out of source and logs. Do not put server secrets in public environment variables. Configure SMTP credentials in Supabase rather than exposing them to browsers. Document the exact variable names chosen during implementation.
@@ -109,7 +108,7 @@ Optional partner-fit feedback can be added only after the required journey works
 - Declined/canceled requests are terminal. A deliberate replacement or new request must follow duplicate prevention rules; do not silently reactivate a request.
 - Allow at most one pending or accepted request per unordered student pair. Handle simultaneous reciprocal requests and repeated submissions transactionally; show the existing request rather than creating duplicates.
 - Accept only a still-pending request for eligible participants. Enforce state transitions in the database with expected-current-state checks, not only UI conditions.
-- Contact access is owner-only or for the other member of a currently accepted pair. Omit private contacts and login emails from candidate responses, AI payloads, and unauthorized cached responses.
+- Contact access is owner-only or for the other member of a currently accepted pair. Omit private contacts and login emails from candidate responses, unauthorized logs, and unauthorized cached responses.
 - Profile/availability changes invalidate recommendations. Recheck candidate eligibility and current profile state when creating requests, regardless of displayed recommendation age.
 
 ## Implementation phases
@@ -147,15 +146,14 @@ Optional partner-fit feedback can be added only after the required journey works
 ### Phase 3 Actual partner recommendations
 
 - [ ] Build a pure candidate-filtering/scoring module with explicit inputs, stable tie-breaking, and focused tests.
-- [ ] Exclude self, ineligible/inactive/incomplete profiles, and existing pending/accepted pairs. Require a shared practice topic and actual overlapping availability for the provisional matching default.
+- [ ] Exclude self, ineligible/inactive/incomplete profiles, and existing pending/accepted pairs. Do not filter out candidates solely because interests, goals, industries, topics, level, or availability differ. These affect ranking only.
 - [ ] Compare availability over the next seven calendar days using each student's timezone and a timezone-aware library; avoid hand-written UTC offsets and account for daylight-saving transitions.
-- [ ] Rank eligible candidates using topic overlap, similar level, relevant goal/industry/stage alignment, interests, and overlap duration. Keep weights in one configuration module.
-- [ ] Send at most ten eligible candidates to the AI adapter, using pseudonymous candidate IDs and matching fields only. Ask for up to three ranked IDs and short evidence-based explanations. Treat profile text as data, not instructions.
-- [ ] Validate returned IDs, uniqueness, output length, and explanation evidence. Never let AI introduce an ineligible candidate or unsupported availability claim. Use a finite timeout, bound retries, and limit calls per user using a shared server/database mechanism.
-- [ ] Display no-match and service-error states separately. On provider failure, a labeled rules-based fallback is acceptable; it must not claim to be AI output. Do not use ungrounded percentage-match scores.
+- [ ] Rank eligible candidates by shared goals/topics, interests, industry/stage alignment where relevant, similar level, and overlap duration. Use configurable initial weights: goals/topics 30, interests 25, industry/stage 20, level 10, availability 15. Normalize each component to 0–1; missing data contributes zero, not a fabricated match. Use candidate ID as a stable tie-breaker. Treat these weights as tunable implementation defaults, not validated fit probabilities.
+- [ ] Return up to three highest-ranked eligible candidates, without duplicates, with template-based reasons drawn only from actual fields: shared interest, same goal/industry, similar level, or verified overlap. If all scores are zero, label the cards as other eligible USC peers rather than implying compatibility. Disclose absent availability overlap and missing scheduling information.
+- [ ] Display no-match only when no eligible, non-dismissed candidates remain. Provide preference editing/retry and distinguish this from database/network failure. Do not invent percentage-fit probabilities or call these recommendations AI-powered.
 - [ ] Cache only with appropriate user/profile-version scoping; skip caching initially if correct invalidation would add complexity.
 
-**Exit:** Profile edits materially affect controlled test cases, no-match is real, and at least one deployed recommendation has used the configured AI provider successfully. Mock adapters support tests but cannot satisfy that last check.
+**Exit:** Profile edits materially affect controlled test cases; ranking and reasons are reproducible; no-candidate handling is real. The entire flow works without AI credentials, SDKs, or AI network calls.
 
 ### Phase 4 Requests and contact handoff
 
@@ -172,7 +170,7 @@ Optional partner-fit feedback can be added only after the required journey works
 - [ ] Add app name, icons, manifest, and responsive layout for iPhone Home Screen launch. Handle safe areas, keyboard visibility, and scrollable content without fake device chrome.
 - [ ] Use accessible form labels, visible focus, appropriate selection semantics, and reachable tap targets. Check empty, loading, and long-text states.
 - [ ] Complete a normal Next.js server deployment; do not static-export server functionality.
-- [ ] Set environment variables and exact auth origins/redirect URLs for the deployed environment. Confirm migrations, SMTP, and AI connectivity.
+- [ ] Set environment variables and exact auth origins/redirect URLs for the deployed environment. Confirm migrations, SMTP, and database connectivity.
 - [ ] Run the completion checks below and record results. Provide the deployed URL and exact local run/test commands in the handoff.
 
 **Exit:** The actual iPhone demonstration passes; any device checks not performed are explicitly listed as unverified.
@@ -187,10 +185,9 @@ Ask for missing setup information early and continue tasks that do not depend on
 | Account access | Establish Supabase/Vercel accounts and grant suitable access | Hosted database/deployment setup |
 | Sender domain and email | Provide DNS control, verify the sender, configure SMTP, receive student verification codes | Hosted login for actual students |
 | Verification/disclosure policy | Accept or revise provisional eligibility, profile-sharing, contact, and removal rules | Real student pilot |
-| AI provider/model | Select the provider/model, configure credentials and usage budget | Live AI matching acceptance |
 | Pilot participants and iPhone | Supply two consenting eligible testers, compatible profiles, and demo device | Real cross-account and device validation |
 
-Use the existing cost assumptions only for planning: free service tiers where suitable, or approximately $20/month for basic Vercel Pro plus $25/month for basic Supabase Pro, with email/domain/AI and additional usage separate. These are not spending authorization. Confirm current terms and prices when provisioning; no pricing research is required to implement the local app.
+Use the existing cost assumptions only for planning: free service tiers where suitable, or approximately $20/month for basic Vercel Pro plus $25/month for basic Supabase Pro, with email/domain and additional usage separate. AI service cost is zero for this MVP. These are not spending authorization. Confirm current terms and prices when provisioning; no pricing research is required to implement the local app.
 
 ## Verification and completion
 
@@ -199,7 +196,8 @@ Use the existing cost assumptions only for planning: free service tiers where su
 Run the configured lint, TypeScript, focused tests, and production build. Tests must exercise behavior rather than duplicate implementation details:
 
 - Candidate exclusion, changed inputs, no matches, timezone overlap and daylight-saving cases.
-- Malformed AI output, invented IDs, duplicate IDs, timeout, and truthful fallback labeling.
+- Stable ranking/tie-breaking, correct configurable weights, duplicate prevention, missing attributes, factual reasons, all-zero scores, and mismatched availability remaining eligible.
+- Full recommendation flow with no AI configuration or external AI requests.
 - Access attempts by unauthenticated, unconfirmed, wrong-domain, owner, participant, and unrelated accounts, including direct database/API calls.
 - Unauthorized profile/contact writes and premature contact reads.
 - Request lifecycle, duplicate/reversed simultaneous requests, repeated acceptance, and contact revocation after cancellation.
@@ -209,8 +207,8 @@ Run the configured lint, TypeScript, focused tests, and production build. Tests 
 
 - [ ] Two eligible USC students receive verification emails and log in independently.
 - [ ] Fresh career and study profiles save correctly; values survive reload/logout/login.
-- [ ] Recommendations use actual profile data and include a successful live AI response.
-- [ ] Incompatible availability produces a no-match result with an edit/retry path.
+- [ ] Recommendations use actual profile data and deterministic ranking; compatibility reasons are factual. No AI configuration is needed.
+- [ ] Non-overlapping availability is disclosed while candidates remain eligible; an empty eligible pool produces a no-match result with an edit/retry path.
 - [ ] A student requests, another accepts, and both see the accepted state and contact handoff.
 - [ ] Decline, replacement, cancellation, and retry behave as described.
 - [ ] A third account cannot obtain private contact details or alter another pair's request.
