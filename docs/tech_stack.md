@@ -1,60 +1,110 @@
-**I recommend a fresh Next.js + TypeScript app, backed by Supabase Postgres and Supabase Auth.** Use the HTML as a reference for the user journey and visual design. Build the working application directly in your preferred stack.
+# Technical Stack
 
-This is a practical architecture for both this week’s matching demo and the subsequent product.
+Build a fresh **Next.js + TypeScript** application with **Supabase Postgres and Auth**, deployed on **Vercel**. Deliver a working iPhone Home Screen web app this week. Use the HTML prototype as a design reference.
 
-| Layer | Recommendation | Responsibility |
-|---|---|---|
-| Interface | Next.js App Router + React | Onboarding, profiles, recommendations, requests |
-| Application backend | Next.js Server Actions and Route Handlers | Validation, matching logic, accepting requests, contact access |
-| Persistent database | Supabase Postgres | Student profiles, availability, requests, accepted partnerships |
-| Authentication | Supabase Auth | Login, email verification, sessions |
-| Hosting | Vercel, using an appropriate plan | Deploy the Next.js application |
+**Demo outcome:** Two verified USC students can create profiles, receive relevant recommendations, request and accept a match, and exchange contact information. Data survives reloads and is shared across accounts.
 
-Next.js supports server-side mutations and API endpoints, while Supabase provides an official Next.js integration. This keeps the MVP in one application codebase plus one managed backend service. [Next.js backend documentation](https://nextjs.org/docs/app/guides/backend-for-frontend), [Supabase Next.js guide](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs)
+## Navigation
 
-**Why Supabase fits your persistence needs**
+- [Scope and architecture](#scope-and-architecture)
+- [Build sequence](#build-sequence)
+- [Human tasks](#human-tasks)
+- [Services and budget](#services-and-budget)
+- [Demo acceptance checklist](#demo-acceptance-checklist)
+- [After the MVP](#after-the-mvp)
 
-Your data naturally has relationships: students have profiles and availability, send requests to other students, and gain access to contact details after acceptance. I would use these initial tables:
+## Scope and architecture
+
+| Component | Choice | Responsibility |
+| --- | --- | --- |
+| Interface | Next.js App Router and React | Onboarding, profile editing, recommendations, requests |
+| Backend | Next.js Server Actions and Route Handlers | Validation, matching, request transitions, contact access |
+| Database and identity | Supabase Postgres and Auth | Persistent records, login, verification, access policies |
+| Hosting | Vercel | Next.js deployment and HTTPS |
+| Authentication email | SMTP provider such as Resend | Verification codes or magic links |
+| AI matching | LLM API, model to be selected | Rerank eligible candidates and explain fit |
+
+Use the Supabase client and SQL migrations initially. Keep business logic in reusable server modules. [Next.js backend guide](https://nextjs.org/docs/app/guides/backend-for-frontend), [Supabase integration](https://supabase.com/docs/guides/getting-started/quickstarts/nextjs).
+
+**This week:** Manual profiles and availability, AI-assisted matching, request states, contact handoff, and mobile presentation.
+
+**Later:** Calls, recording, interview feedback, calendar and resume integrations, chat, rewards, and payments.
+
+## Build sequence
+
+Phases are ordered by dependency; effort and exact dates remain to be assigned.
+
+| Phase | Implementation tasks | Exit condition |
+| --- | --- | --- |
+| **1 Establish access** | Create the Next.js app and hosted projects. Configure authentication, sender domain, SMTP, and deployment URLs. Agree the USC verification rule. | Two eligible students can receive verification email and log in on the deployed site. |
+| **2 Persist profiles** | Add tables and migrations. Build manual profile and availability forms. Enforce ownership and visibility rules in the backend and database. | Each student can save and edit their own profile; changes survive reloads. |
+| **3 Implement matching** | Filter active, eligible students; exclude self; score goals, skills, level, and availability. Ask AI to rerank a small shortlist and explain fit. Validate returned candidates and handle errors or no matches. | Recommendations respond to profile changes and remain within the eligible pool. |
+| **4 Complete requests** | Implement pending, accepted, declined, and canceled states. Make acceptance atomic and protect against duplicate transitions. Reveal contact details after acceptance. | A request sent from one account is accepted from the other, and both see the same outcome. |
+| **5 Prepare the demo** | Add manifest and icons, responsive layout, safe-area handling, and usable keyboard/scroll behavior. Recruit pilot participants and rehearse. | The full acceptance checklist passes on the actual iPhone. |
+
+### Initial database tables
 
 | Table | Contents |
-|---|---|
-| `profiles` | Display name, school/program, practice goals, skills, level, recruiting information, active status |
-| `availability` | Student, recurring time windows, timezone |
-| `match_requests` | Sender, recipient, pending/accepted/declined/canceled status, timestamps |
-| `private_contacts` | Contact information shared after acceptance |
-| `match_feedback` | Optional partner-fit feedback for evaluating the MVP |
+| --- | --- |
+| `profiles` | Display name, school/program, goals, skills, level, recruiting information, active status |
+| `availability` | Student, time windows, timezone |
+| `match_requests` | Sender, recipient, status, timestamps |
+| `private_contacts` | Contact information available after acceptance |
+| `match_feedback` | Optional partner-fit feedback for evaluation |
 
-Use Supabase’s managed authentication records for identity. Keep verification status authoritative on the server rather than accepting a profile field that users can edit.
+Use managed Auth records for identity and server-authoritative verification. Apply row-level access policies: students edit their own profiles, request actions depend on participant role, and contacts require an accepted partnership. Keep AI credentials server-side. [Supabase access policies](https://supabase.com/docs/guides/database/postgres/row-level-security).
 
-For the first version, I would use the Supabase client and SQL migrations directly. Add an ORM only if your team already has an established preference.
+## Human tasks
 
-Access rules belong in both the application and database: students edit their own profiles, only request participants can change the relevant request state, and contact details become readable after acceptance. Supabase’s row-level security supports database-enforced access policies. [Supabase access policies](https://supabase.com/docs/guides/database/postgres/row-level-security)
+Account ownership, product decisions, real inboxes, and device interaction need team participation. Configuration can be automated once access is available.
 
-**How I would implement matching**
+- [ ] **Team lead — before phase 1:** Confirm deadline, pilot size, spending ceiling, service plans, and billing owner.
+- [ ] **Account owners — phase 1:** Sign in or create service accounts, complete required terms/billing steps, and provide appropriate team access.
+- [ ] **Domain owner — phase 1:** Provide a sender domain and DNS access, or publish the required verification records. USC email access does not grant USC DNS control.
+- [ ] **Product lead — before phases 1 and 3:** Decide whether USC email verification is sufficient, which domains qualify, similar versus complementary matching, optional teaching strengths, and contact-sharing rules.
+- [ ] **Two pilot students — phases 1 and 4:** Test email delivery and login, then send and accept a real request from separate accounts.
+- [ ] **Demo coordinator — phase 5:** Recruit compatible participants; clearly identify fictional profiles if used.
+- [ ] **Presenter — phase 5:** Add the app to the iPhone Home Screen and rehearse the complete flow on the demo device.
+- [ ] **Billing owners — before and after demo:** Review usage, alerts, subscriptions, and whether the pilot and its data should continue.
 
-Keep the process small and understandable:
+**Early dependency:** Configure email first. Supabase's default sender only delivers to project-team addresses; student login requires a suitable custom SMTP setup. Email ownership alone does not prove current enrollment. [SMTP setup](https://supabase.com/docs/guides/auth/auth-smtp).
 
-1. Query eligible, active USC students, excluding the current user.
-2. Filter or score compatibility using goals, skills, level, and availability.
-3. Use AI to rerank a small eligible shortlist and explain fit.
-4. Validate the AI output against that shortlist before displaying results.
+## Services and budget
 
-This preserves actual eligibility and availability constraints while demonstrating AI-assisted matching. A vector database is unnecessary for the initial structured profiles.
+Prices checked **October 22, 2026**, in USD before taxes. Estimates assume a small pilot and exclude labor, overages, and future media features.
 
-Persist requests and acceptance independently of AI. The sender expresses interest by requesting; the recipient confirms the partnership by accepting. That transition should be an atomic database operation so repeated clicks cannot create inconsistent states.
+| Service | Free option | Paid option or variable cost |
+| --- | --- | --- |
+| Vercel | Hobby, subject to personal/noncommercial eligibility | Pro: **$20/month**, one deploying seat included; **$20/month per additional deploying seat**. Viewers are free. [Billing](https://vercel.com/docs/plans/pro-plan), [eligibility](https://vercel.com/docs/limits/fair-use-guidelines). |
+| Supabase | **$0/month**, 500 MB database; may pause after one inactive week | Pro: **from $25/month** for the basic first-project configuration. [Pricing](https://supabase.com/pricing). |
+| Resend SMTP | **$0/month**, 3,000 emails/month, 100/day | Pro: **$20/month**, 50,000 emails/month; overages extra. [Pricing](https://resend.com/pricing). |
+| Sender domain | No incremental fee if a suitable domain is already controlled | Annual registration cost depends on the chosen domain. Resend requires domain verification. [Requirements](https://resend.com/docs/dashboard/domains/introduction). |
+| LLM API | No free allowance assumed | Reserve **$5–$10 for the pilot**, pending model choice and measured token usage. This is a planning allowance, not a quote or enforced cap. |
 
-**Next.js is suitable for the real product**
+### First month scenarios
 
-For the confirmed **iPhone Home Screen web app**, Next.js is a strong fit. It supports web-app manifests and an app-like mobile experience, so the demo can become the first version of the actual product. [Next.js PWA guide](https://nextjs.org/docs/app/guides/progressive-web-apps)
+Assume one deploying seat, an existing sender domain, Resend Free, and $5–$10 in AI usage.
 
-If you later require an installed native iOS application, you can retain Postgres, authentication, and backend business logic while adding a mobile client. Keep business logic in reusable server modules and expose explicit APIs when that client needs them. Next.js server features require a hosted runtime; they do not become device-side backend functionality through static export. [Next.js deployment constraints](https://nextjs.org/docs/app/guides/backend-for-frontend)
+| Configuration | Estimated total |
+| --- | --- |
+| Eligible Vercel Hobby + Supabase Free | **$5–$10** |
+| Vercel Pro + Supabase Free | **$25–$30** |
+| Vercel Pro + Supabase Pro | **$50–$55** |
 
-For later calling and interview analysis, I would add a managed calling service and background processing. Those additions can coexist with Next.js.
+Add domain registration, additional seats, email upgrades, taxes, and overages as applicable. Set provider alerts and application request limits. Estimate AI cost from request count and average input/output tokens at the selected model's rates.
 
-**Three practical considerations for this week**
+## Demo acceptance checklist
 
-- **Set up authentication email early.** Supabase’s default sender only delivers to project-team addresses. Real USC-student email verification requires custom SMTP. Verifying email ownership also does not establish current enrollment. [Supabase email setup](https://supabase.com/docs/guides/auth/auth-smtp)
-- **Start with a small database plan.** Supabase Free currently includes a 500 MB database; inactive projects can pause. Pro starts at $25/month. Hosting, email, and AI usage are separate costs. [Supabase pricing](https://supabase.com/pricing)
-- **Check deployment-plan suitability.** Vercel Hobby is restricted to personal, noncommercial use; choose the plan that fits your team’s deployment arrangement. [Vercel usage guidelines](https://vercel.com/docs/limits/fair-use-guidelines)
+- [ ] Two eligible USC accounts receive verification emails and log in.
+- [ ] Profiles and availability persist after reload and across sessions.
+- [ ] Profile changes affect recommendations; explanations reflect actual compatibility.
+- [ ] Incompatible profiles produce a useful no-match outcome.
+- [ ] Requests support pending, accepted, declined, and canceled outcomes across accounts.
+- [ ] Contact details remain hidden until acceptance; unrelated users cannot access them.
+- [ ] Students can leave the matching pool and request profile removal.
+- [ ] The Home Screen flow works with the iPhone keyboard, scrolling, and connectivity changes.
+- [ ] Hosted services are available and usage is within the agreed budget before presentation.
 
-The most useful completion check is a two-account walkthrough: create profiles, obtain input-dependent recommendations, send a request, accept it from the other account, reveal contact information, and confirm everything survives reloads.
+## After the MVP
+
+Continue with Next.js for the web product. Add managed calling and background interview analysis in later stages. A future native client can reuse the database, authentication, and backend APIs; Next.js server features still need hosted infrastructure. [PWA guide](https://nextjs.org/docs/app/guides/progressive-web-apps), [deployment constraints](https://nextjs.org/docs/app/guides/backend-for-frontend).
