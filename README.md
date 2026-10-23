@@ -47,18 +47,108 @@ server client, proxy and UI, plus `src/lib/dev-mode.ts` and
 `src/lib/server/dev-database.ts`. Restore the PGlite external-package setting if
 no longer needed. Supply Supabase connection values to test the real OTP path.
 
-For a local Supabase service, install/start Docker and run:
+### Test email verification locally (no paid plan or SMTP account)
+
+Use the local Supabase Auth service and its captured-email inbox. This exercises
+code issuance, confirmation, sessions and database access without delivering
+anything to a real USC inbox. It does not test real email ownership, SMTP
+reliability or USC's link-scanning behavior. Local template customization is
+independent of the hosted free-plan restriction.
+
+#### Prepare the local email templates
+
+Install and start Docker Desktop (or a compatible Docker runtime). Run all
+commands below from this repository's root. The Supabase CLI is already a project
+dev dependency; no Supabase account, cloud project, `supabase login`, or project
+link is required for this local workflow. Do not run `supabase init` over the
+existing configuration.
+
+Create `supabase/templates/otp.html` with:
+
+```html
+<h2>Your InTandem verification code</h2>
+<p>{{ .Token }}</p>
+<p>Enter this code on the InTandem login page.</p>
+```
+
+Append these sections to `supabase/config.toml` (or edit them if already present):
+
+```toml
+[auth.email.template.confirmation]
+subject = "Your InTandem verification code"
+content_path = "./supabase/templates/otp.html"
+
+[auth.email.template.magic_link]
+subject = "Your InTandem sign-in code"
+content_path = "./supabase/templates/otp.html"
+```
+
+Both templates are needed: the first for a new account and the second for later
+sign-ins. The existing `[auth.email]` configuration already enables confirmations,
+six-digit codes and a ten-minute expiry. Keep those settings enabled. Local
+customization uses files, not the hosted dashboard's template editor.
+See [Supabase local email templates](https://supabase.com/docs/guides/local-development/customizing-email-templates).
+
+#### Start Supabase and connect the app
 
 ```sh
 npx supabase start
 npx supabase migration up --local
+npx supabase status
 ```
 
-Use the local API URL and publishable/anon client key reported by the CLI in
-`.env.local`. Local test emails appear at http://localhost:54324. Configure the
-email template to include the OTP as described below. Never use the service-role
-key in the application. Docker is not installed in the implementation environment,
-so this full local Auth stack was not started here.
+If Supabase was already running when you changed the templates, restart it with
+`npx supabase stop` followed by `npx supabase start`. Normal stop/start preserves
+local data; no database reset is needed.
+
+In your existing `.env.local`, replace the hosted connection values with these
+local values; preserve a private copy of hosted settings if you need to switch
+back later. Use the **local publishable key** shown by `supabase status` (or its
+local **anon** key if that is what your CLI reports). Never use the secret or
+service-role key.
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=PASTE_LOCAL_PUBLISHABLE_OR_ANON_KEY_HERE
+APP_ORIGIN=http://localhost:3000
+USC_EMAIL_DOMAINS=usc.edu
+DEV_EMAIL_LOGIN=false
+```
+
+Restart Next.js after changing the environment:
+
+```sh
+npm run dev
+```
+
+#### Complete the verification flow
+
+1. Open http://localhost:3000/login and enter a fictional test address such as
+   `alice@usc.edu`. The button should say **Email me a code**. If it says
+   **Continue with USC email**, you are still using the development bypass.
+2. Open http://localhost:54324, the local email inbox (Mailpit; older CLI versions
+   may label it Inbucket). Find the newest message for that address and copy the
+   numeric code. Nothing is sent to the actual address.
+3. Enter the code in the app and choose **Verify and continue**. Finish onboarding,
+   save, reload, and test sign-out/sign-in with a newly issued code. Use a second
+   browser profile with `bob@usc.edu` to test requests and acceptance independently.
+
+To test failures, try an incorrect code or reuse a successfully consumed code;
+verification should fail. Request a fresh code to continue. If the inbox is empty,
+check that the app URL points to `127.0.0.1:54321`, not your hosted project, and
+that `npx supabase status` reports the local services running. If emails still
+contain links, check both template sections and restart Supabase.
+See [Supabase's local email capture documentation](https://supabase.com/docs/guides/local-development/cli/testing-and-linting).
+
+These accounts and profiles belong to the local Supabase database, separate from
+both the temporary PGlite bypass store and your hosted database. To return to
+hosted verification, restore the hosted URL/key and restart Next.js. To return to
+the bypass, unset the Supabase connection variables and unset `DEV_EMAIL_LOGIN`
+or set it to `true`, then restart Next.js.
+
+The full Docker/Auth workflow has not been executed in the implementation
+environment; the steps above are based on the project configuration and Supabase's
+local-development documentation.
 
 ## Configuration and hosted setup
 
@@ -100,6 +190,118 @@ administrative credential. SMTP credentials belong in Supabase settings.
 5. Run the live rehearsal below. Use Safari on an actual iPhone, then Share → Add
    to Home Screen. The manifest, PNG icons, standalone launch, safe-area padding,
    and mobile styles are implemented; they still require physical-device checks.
+
+## Deploy to Vercel
+
+Your Vercel account is enough to publish the website. To log in and use profiles
+on the deployed site, you also need the hosted Supabase database and email setup
+described above. **The temporary `@usc.edu`-only login works locally under
+`npm run dev`; it is disabled on both Vercel Production and Preview deployments.**
+The local test database and its accounts are not uploaded or migrated to Supabase.
+Without Supabase configuration, the deployed landing page works but login is
+unavailable. Setting `DEV_EMAIL_LOGIN=true` on Vercel will not enable the bypass.
+
+### 1. Prepare Supabase
+
+Create the project, apply the migration, and configure email OTP using the
+commands in **Configuration and hosted setup** above. Copy the project URL and
+publishable key from Supabase project settings. Do not copy the database password
+or service-role/secret key into the app's environment variables.
+
+For email delivery to ordinary USC testers, configure custom SMTP. Supabase's
+built-in sender restricts delivery to authorized organization team addresses and
+is not a general-purpose student email sender. Configure the Magic Link and
+Confirm Signup templates to show `{{ .Token }}` so students receive a code they
+can type into this app. See [Supabase SMTP setup](https://supabase.com/docs/guides/auth/auth-smtp)
+and [email templates](https://supabase.com/docs/guides/auth/auth-email-templates).
+
+### 2. Create the Vercel project
+
+If this code is already in a supported Git provider such as GitHub, open your
+Vercel dashboard, choose **Add New → Project**, and import the repository. Use
+these settings:
+
+| Setting | Value |
+| --- | --- |
+| Root Directory | Repository root (`./`), where `package.json` lives |
+| Framework Preset | Next.js |
+| Install Command | `npm ci` (include development dependencies for the build) |
+| Build Command | `npm run build` |
+| Output Directory | Leave the Next.js default; do not set `out` |
+
+You do not need `vercel.json`, a static export, or a custom start command. Vercel
+runs the Next.js server functionality. Git-connected deployments can publish
+subsequent changes when you push to the configured production branch.
+See [Vercel Git deployments](https://vercel.com/docs/git).
+
+Alternatively, deploy the local working directory without a Git provider. From
+this repository's root, run:
+
+```sh
+npx vercel@latest login
+npx vercel@latest link
+```
+
+Select your account/team, create a new project (or select the intended existing
+one), and use this directory as its root. Then open that project's Vercel dashboard
+to configure the environment below before running the production deploy command.
+These commands link a Vercel project; they do not create a Git repository or commit
+your code. See [Vercel CLI deployment](https://vercel.com/docs/projects/deploy-from-cli).
+
+### 3. Add production environment variables
+
+In Vercel **Project → Settings → Environment Variables**, add these values to the
+**Production** environment:
+
+| Name | Value |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your real Supabase project API URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | That project's publishable client key |
+| `USC_EMAIL_DOMAINS` | `usc.edu` |
+| `APP_ORIGIN` | Your stable production origin, e.g. `https://YOUR_PROJECT.vercel.app`, without a trailing slash |
+
+Use the domain assigned to your project, not the example literally. If you do not
+know it until the first deployment, update `APP_ORIGIN` after Vercel displays the
+production domain and redeploy. Do not manually set `NODE_ENV` to `development`.
+Keep SMTP credentials in Supabase's SMTP settings.
+
+For Preview deployments, configure their **Preview** environment separately if you
+want login to work there; a separate Supabase test project avoids mixing test and
+production records. `.env.local` on your laptop does not configure Vercel.
+Environment changes require a new deployment, including changes to public keys
+that Next.js embeds at build time. See [Vercel environment variables](https://vercel.com/docs/environment-variables).
+
+### 4. Deploy and finish the auth URL settings
+
+For a Git import, click **Deploy**. For a CLI-linked project, run:
+
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npx vercel@latest --prod
+```
+
+Save the stable production URL Vercel displays. In Supabase **Authentication →
+URL Configuration**, set **Site URL** to that same HTTPS origin. Add only specific
+additional redirect URLs you need for local/preview testing. This app uses typed
+OTP codes and has no `/auth/callback` endpoint to configure. If the actual domain
+differs from `APP_ORIGIN`, correct the variable and deploy again. For later CLI
+updates, rerun `npx vercel@latest --prod` from this directory.
+
+### 5. Verify the deployed app
+
+Open `/login` on the production URL. It should offer **Email me a code**, not the
+local development login. Sign in with an actual USC inbox, create a profile, and
+check it survives reload and sign-out/sign-in. Use a second consenting tester to
+check request → acceptance → contact handoff. Local test accounts do not carry over.
+
+If login says the service is not configured, check the Production variables and
+redeploy. If a code cannot be sent, check Supabase Auth logs, SMTP sender
+verification, and sending limits. If profile saving fails, confirm the migration
+was applied to the same Supabase project named in the Vercel variables. For build
+or server failures, inspect the deployment's build/runtime logs in Vercel.
 
 ## Checks
 
