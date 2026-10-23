@@ -14,10 +14,38 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Supply the Supabase connection values in `.env.local`
-to enable login. Without them, the landing page runs, login explains the missing
-setup, and protected routes redirect to login. No fake authenticated demo mode or
-sample students are exposed in the app.
+Open http://localhost:3000. For immediate local testing, run `npm run dev`
+without Supabase environment variables. Enter any valid `@usc.edu` address, such
+as `alice@usc.edu`, and continue without an OTP. Create a second account such as
+`bob@usc.edu` to test requests and contact handoff (use separate browser profiles
+or sign out and switch addresses). No sample profiles are prefilled.
+
+### Temporary development login
+
+This temporary bypass checks only email syntax and the exact normalized `usc.edu`
+domain; it does **not** verify email ownership or enrollment. Anyone can sign in
+as any local test address. Use fictional information only. The UI labels this
+mode explicitly. Sessions use random, HTTP-only cookies, expire after one day,
+and are revoked on sign-out.
+
+It is enabled only when `NODE_ENV=development`, no
+`NEXT_PUBLIC_SUPABASE_URL` is set, and `DEV_EMAIL_LOGIN` is not `false`. If you
+copied placeholder Supabase values into `.env.local`, remove those values to use
+this mode. Set `DEV_EMAIL_LOGIN=false` to disable it. Production (`npm run build`
+and `npm run start`) always uses verified Supabase OTP login.
+
+A separate embedded PostgreSQL database in `.next/intandem-dev-db` stores local
+accounts, profiles, requests and sessions. It runs the application migration and
+ordinary-role RLS; simulated confirmation records exist only in this isolated
+store. It never creates or confirms hosted Supabase accounts. Local data survives
+reloads and development server restarts, but is disposable and may be lost when
+Next.js build output is cleared. This does not validate hosted Auth/SMTP, cross-device
+access, or real-student eligibility. Do not expose this local mode to students.
+
+To remove the temporary mode later, remove its branches in the login actions,
+server client, proxy and UI, plus `src/lib/dev-mode.ts` and
+`src/lib/server/dev-database.ts`. Restore the PGlite external-package setting if
+no longer needed. Supply Supabase connection values to test the real OTP path.
 
 For a local Supabase service, install/start Docker and run:
 
@@ -147,7 +175,7 @@ Implemented:
 
 Verified locally:
 
-- 45 automated tests pass, including direct database access by anonymous,
+- 47 automated tests pass (including the isolated development login flow), including direct database access by anonymous,
   unconfirmed, wrong-domain, owner, participant, unrelated, and banned identities;
   unauthorized writes, premature contact reads, atomic rollback, candidate
   eligibility changes, lifecycle/terminal states, and contact revocation.

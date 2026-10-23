@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { devEmailLogin, DEV_SESSION_COOKIE } from "@/lib/dev-mode";
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const protectedRoute = /^\/(matches|requests|profile|onboarding|settings)(\/|$)/.test(request.nextUrl.pathname);
@@ -11,6 +13,11 @@ export async function proxy(request: NextRequest) {
     redirect.headers.set("Cache-Control", "private, no-store");
     return redirect;
   };
+  if (devEmailLogin()) {
+    if (protectedRoute && !request.cookies.get(DEV_SESSION_COOKIE)?.value) return loginRedirect();
+    response.headers.set("Cache-Control", "private, no-store");
+    return response;
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return protectedRoute ? loginRedirect() : response;
   const supabase = createServerClient(url, key, { cookies: {

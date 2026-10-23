@@ -9,6 +9,8 @@ import { allowedEmail } from "@/lib/identity";
 import type { ActionState } from "@/lib/actions.types";
 import type { Json } from "@/lib/database.types";
 
+import { devEmailLogin } from "@/lib/dev-mode";
+
 const refresh = () => { for (const path of ["/profile", "/matches", "/requests", "/settings", "/onboarding"]) revalidatePath(path); };
 function serviceError(error: { message: string; code?: string }): ActionState {
   const known = ["Request changed. Refresh to see its current state", "Both profiles must be complete and matching must be active", "Candidate is no longer eligible", "Participant is no longer eligible", "Removal is pending; contact the team before resuming"];
@@ -18,6 +20,11 @@ export async function loginAction(_: ActionState, form: FormData): Promise<Actio
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   const token = form.get("resend") ? "" : String(form.get("token") ?? "").trim();
   if (!z.email().safeParse(email).success || !allowedEmail(email, process.env.USC_EMAIL_DOMAINS)) return { error: "Use an email address with the exact usc.edu domain.", email };
+  if (devEmailLogin()) {
+    if (!allowedEmail(email)) return { error: "Use an email address with the exact usc.edu domain.", email };
+    await (await import("@/lib/server/dev-database")).devSignIn(email);
+    redirect("/matches");
+  }
   if (!configured()) return { error: "Sign-in is not available yet. The team needs to configure the service.", email };
   try {
     const db = await createClient();
@@ -33,6 +40,10 @@ export async function loginAction(_: ActionState, form: FormData): Promise<Actio
   redirect("/matches");
 }
 export async function logoutAction(): Promise<void> {
+  if (devEmailLogin()) {
+    await (await import("@/lib/server/dev-database")).devSignOut();
+    redirect("/login");
+  }
   if (configured()) {
     const db = await createClient();
     const { error } = await db.auth.signOut();
