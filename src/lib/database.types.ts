@@ -1,0 +1,20 @@
+// Generated from PostgreSQL catalog by npm run db:types:local. Do not edit.
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Database = { public: { Tables: {
+"availability": { Row: { "id": string; "user_id": string; "timezone": string; "day": number; "start_time": string; "end_time": string }; Insert: Partial<{ "id": string; "user_id": string; "timezone": string; "day": number; "start_time": string; "end_time": string }>; Update: Partial<{ "id": string; "user_id": string; "timezone": string; "day": number; "start_time": string; "end_time": string }>; Relationships: [] };
+"deletion_requests": { Row: { "user_id": string; "requested_at": string; "status": string }; Insert: Partial<{ "user_id": string; "requested_at": string; "status": string }>; Update: Partial<{ "user_id": string; "requested_at": string; "status": string }>; Relationships: [] };
+"match_requests": { Row: { "id": string; "sender": string; "recipient": string; "status": string; "created_at": string; "updated_at": string }; Insert: Partial<{ "id": string; "sender": string; "recipient": string; "status": string; "created_at": string; "updated_at": string }>; Update: Partial<{ "id": string; "sender": string; "recipient": string; "status": string; "created_at": string; "updated_at": string }>; Relationships: [] };
+"private_contacts": { Row: { "user_id": string; "email": string; "updated_at": string }; Insert: Partial<{ "user_id": string; "email": string; "updated_at": string }>; Update: Partial<{ "user_id": string; "email": string; "updated_at": string }>; Relationships: [] };
+"profile_topics": { Row: { "id": string; "user_id": string; "topic_key": string; "label": string; "kind": string; "level": string }; Insert: Partial<{ "id": string; "user_id": string; "topic_key": string; "label": string; "kind": string; "level": string }>; Update: Partial<{ "id": string; "user_id": string; "topic_key": string; "label": string; "kind": string; "level": string }>; Relationships: [] };
+"profiles": { Row: { "user_id": string; "display_name": string; "school": string; "purpose": string; "goals": string[]; "interests": string[]; "industry": string | null; "recruiting_stage": string | null; "active": boolean; "complete": boolean; "version": number; "created_at": string; "updated_at": string }; Insert: Partial<{ "user_id": string; "display_name": string; "school": string; "purpose": string; "goals": string[]; "interests": string[]; "industry": string | null; "recruiting_stage": string | null; "active": boolean; "complete": boolean; "version": number; "created_at": string; "updated_at": string }>; Update: Partial<{ "user_id": string; "display_name": string; "school": string; "purpose": string; "goals": string[]; "interests": string[]; "industry": string | null; "recruiting_stage": string | null; "active": boolean; "complete": boolean; "version": number; "created_at": string; "updated_at": string }>; Relationships: [] };
+"recommendation_dismissals": { Row: { "user_id": string; "candidate_id": string; "created_at": string }; Insert: Partial<{ "user_id": string; "candidate_id": string; "created_at": string }>; Update: Partial<{ "user_id": string; "candidate_id": string; "created_at": string }>; Relationships: [] };
+}; Views: { [_ in never]: never }; Functions: {
+candidate_profiles: { Args: Record<string, never>; Returns: Database["public"]["Tables"]["profiles"]["Row"][] };
+create_request: { Args: { candidate: string }; Returns: Database["public"]["Tables"]["match_requests"]["Row"] };
+dismiss_candidate: { Args: { candidate: string }; Returns: undefined };
+request_deletion: { Args: Record<string, never>; Returns: undefined };
+reset_dismissals: { Args: Record<string, never>; Returns: undefined };
+save_profile: { Args: { payload: Json }; Returns: undefined };
+set_matching: { Args: { enabled: boolean }; Returns: undefined };
+transition_request: { Args: { request_id: string; expected_status: string; next_status: string }; Returns: Database["public"]["Tables"]["match_requests"]["Row"] };
+}; Enums: { [_ in never]: never }; CompositeTypes: { [_ in never]: never } } };

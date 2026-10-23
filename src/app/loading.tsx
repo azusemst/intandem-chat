@@ -1,0 +1,1 @@
+export default function Loading() { return <main id="main" className="narrow page" aria-busy="true"><div className="panel stack" role="status"><span className="eyebrow">One moment</span><h1>Getting things ready…</h1><p>Loading your latest information.</p></div></main>; }
